@@ -1,14 +1,13 @@
 /**************************************************************************//**
  * @file     VerifyNuBL3x.c
  * @version  V3.00
- * @brief    This source file is used to authenticate the NuBL32 and NuBL33.
+ * @brief    This source file is used to authenticate the NuBL32.
  *
  * @copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
  ******************************************************************************/
 #include <stdio.h>
 #include <string.h>
 #include "NuMicro.h"
-#include "partition_M261.h"
 #include "NuBL2.h"
 
 #define printf(...)
@@ -167,14 +166,6 @@ static int32_t IdentifyNuBL3xPubKey(uint32_t *pu32FwInfo, uint32_t u32InfoBase)
         extern uint32_t g_NuBL32KeyHashStart, g_NuBL32KeyHashEnd;   // declared in NuBL3xKeyStorage.s
         memcpy((void *)&PubKey, (void *)&g_NuBL32KeyStart, ((uint32_t)&g_NuBL32KeyEnd-(uint32_t)&g_NuBL32KeyStart));
         memcpy((void *)&au32Hash0, (void *)&g_NuBL32KeyHashStart, ((uint32_t)&g_NuBL32KeyHashEnd-(uint32_t)&g_NuBL32KeyHashStart));
-    }
-    else if (u32InfoBase == NUBL33_FW_INFO_BASE)
-    {
-        /* Get encrypted NuBL33 public key and verify its hash value */
-        extern uint32_t g_NuBL33KeyStart, g_NuBL33KeyEnd;           // declared in NuBL3xKeyStorage.s
-        extern uint32_t g_NuBL33KeyHashStart, g_NuBL33KeyHashEnd;   // declared in NuBL3xKeyStorage.s
-        memcpy((void *)&PubKey, (void *)&g_NuBL33KeyStart, ((uint32_t)&g_NuBL33KeyEnd-(uint32_t)&g_NuBL33KeyStart));
-        memcpy((void *)&au32Hash0, (void *)&g_NuBL33KeyHashStart, ((uint32_t)&g_NuBL33KeyHashEnd-(uint32_t)&g_NuBL33KeyHashStart));
     }
     else
     {

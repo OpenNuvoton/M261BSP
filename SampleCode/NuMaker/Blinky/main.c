@@ -13,9 +13,8 @@
 #include "gpio.h"
 #include "sys.h"
 
-#define LED_INIT()  {PA->MODE = (PA->MODE &(~(0xf << 10*2))) | (0x5 << 10 * 2);}
-#define LED_YELLOW  PA10
-#define LED_RED     PA11
+#define LED_INIT()  {PB->MODE = (PB->MODE &(~(0xf << 10*2))) | (0x5 << 10 * 2);}
+#define LED_RED     PB10
 
 
 void SYS_Init(void)
@@ -83,14 +82,11 @@ int main()
 
     /* Init GPIO for LED toggle */
     LED_INIT();
-    LED_YELLOW = 1;
     LED_RED = 0;
     while(1)
     {
-        LED_YELLOW ^= 1;
         LED_RED ^= 1;
         CLK_SysTickLongDelay(200000);
-        LED_YELLOW ^= 1;
         LED_RED ^= 1;
         CLK_SysTickLongDelay(200000);
     }

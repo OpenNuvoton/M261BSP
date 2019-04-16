@@ -50,19 +50,19 @@ static uint32_t SCUART_GetClock(SC_T *sc)
     uint32_t u32ClkSrc, u32Num, u32Clk = __HIRC, u32Div;
 
     /* Get smartcard module clock source and divider */
-    if((sc == SC0) || (sc == SC0_NS))
+    if(sc == SC0)
     {
         u32Num = 0UL;
         u32ClkSrc = CLK_GetModuleClockSource(SC0_MODULE);
         u32Div = CLK_GetModuleClockDivider(SC0_MODULE);
     }
-    else if((sc == SC1) || (sc == SC1_NS))
+    else if(sc == SC1)
     {
         u32Num = 1UL;
         u32ClkSrc = CLK_GetModuleClockSource(SC1_MODULE);
         u32Div = CLK_GetModuleClockDivider(SC1_MODULE);
     }
-    else if((sc == SC2) || (sc == SC2_NS))
+    else if(sc == SC2)
     {
         u32Num = 2UL;
         u32ClkSrc = CLK_GetModuleClockSource(SC2_MODULE);

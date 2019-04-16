@@ -59,16 +59,8 @@ void EBI_Open(uint32_t u32Bank, uint32_t u32DataWidth, uint32_t u32TimingClass, 
     volatile uint32_t *pu32EBICTL, *pu32EBITCTL;
     uint32_t pu32Index0, pu32Index1;
 
-    if((__PC()&NS_OFFSET) == NS_OFFSET)
-    {
-        pu32Index0 = (u32Index0 + NS_OFFSET);
-        pu32Index1 = (u32Index1 + NS_OFFSET);
-    }
-    else
-    {
-        pu32Index0 = u32Index0;
-        pu32Index1 = u32Index1;
-    }
+    pu32Index0 = u32Index0;
+    pu32Index1 = u32Index1;
 
     pu32EBICTL  = (uint32_t *)(pu32Index0);
     pu32EBITCTL = (uint32_t *)(pu32Index1);
@@ -164,14 +156,7 @@ void EBI_Close(uint32_t u32Bank)
     volatile uint32_t *pu32EBICTL;
     uint32_t pu32Index;
 
-    if((__PC()&NS_OFFSET) == NS_OFFSET)
-    {
-        pu32Index = (u32Index + NS_OFFSET);
-    }
-    else
-    {
-        pu32Index = u32Index;
-    }
+    pu32Index = u32Index;
 
     pu32EBICTL  = (uint32_t *)(pu32Index);
 
@@ -207,16 +192,8 @@ void EBI_SetBusTiming(uint32_t u32Bank, uint32_t u32TimingConfig, uint32_t u32Mc
     volatile uint32_t *pu32EBICTL, *pu32EBITCTL;
     uint32_t pu32Index0, pu32Index1;
 
-    if((__PC()&NS_OFFSET) == NS_OFFSET)
-    {
-        pu32Index0 = (u32Index0 + NS_OFFSET);
-        pu32Index1 = (u32Index1 + NS_OFFSET);
-    }
-    else
-    {
-        pu32Index0 = u32Index0;
-        pu32Index1 = u32Index1;
-    }
+    pu32Index0 = u32Index0;
+    pu32Index1 = u32Index1;
 
     pu32EBICTL  = (uint32_t *)(pu32Index0);
     pu32EBITCTL = (uint32_t *)(pu32Index1);

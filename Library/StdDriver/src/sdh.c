@@ -271,62 +271,59 @@ uint32_t SDH_SDCmdAndRspDataIn(SDH_T *sdh, uint32_t u32Cmd, uint32_t u32Arg)
 
 void SDH_Set_clock(SDH_T *sdh, uint32_t u32SDClockKhz)
 {
-    if(!(__PC() & (1UL << 28)))
+    uint32_t u32Rate, u32Div1;
+    static uint32_t u32SDClkSrc = 0UL;
+
+    /* M261 is only support SDH0 */
+    u32SDClkSrc = (CLK->CLKSEL0 & CLK_CLKSEL0_SDH0SEL_Msk);
+    if(u32SDClkSrc == CLK_CLKSEL0_SDH0SEL_HXT)
     {
-        uint32_t u32Rate, u32Div1;
-        static uint32_t u32SDClkSrc = 0UL;
-
-        /* M261 is only support SDH0 */
-        u32SDClkSrc = (CLK->CLKSEL0 & CLK_CLKSEL0_SDH0SEL_Msk);
-        if(u32SDClkSrc == CLK_CLKSEL0_SDH0SEL_HXT)
-        {
-            _SDH_ReferenceClock = (CLK_GetHXTFreq() / 1000UL);
-        }
-        else if(u32SDClkSrc == CLK_CLKSEL0_SDH0SEL_HIRC)
-        {
-            _SDH_ReferenceClock = (__HIRC / 1000UL);
-        }
-        else if(u32SDClkSrc == CLK_CLKSEL0_SDH0SEL_PLL)
-        {
-            _SDH_ReferenceClock = (CLK_GetPLLClockFreq() / 1000UL);
-        }
-        else if(u32SDClkSrc == CLK_CLKSEL0_SDH0SEL_HCLK)
-        {
-            _SDH_ReferenceClock = (CLK_GetHCLKFreq() / 1000UL);
-        }
-
-        if(u32SDClockKhz >= 50000UL)
-        {
-            u32SDClockKhz = 50000UL;
-        }
-        u32Rate = _SDH_ReferenceClock / u32SDClockKhz;
-
-        /* choose slower clock if system clock cannot divisible by wanted clock */
-        if(_SDH_ReferenceClock % u32SDClockKhz != 0UL)
-        {
-            u32Rate++;
-        }
-
-        if(u32Rate >= SDH_CLK_DIV0_MAX)
-        {
-            u32Rate = SDH_CLK_DIV0_MAX;
-        }
-
-        /* --- calculate the second divider CLKDIV0[SDHOST_N] */
-        if(u32Rate == 0UL)
-        {
-            u32Div1 = 0UL;
-        }
-        else
-        {
-            u32Div1 = ((u32Rate - 1UL) & 0xFFUL);
-        }
-
-        /* --- setup register */
-        /* M261 is only support SDH0 */
-        CLK->CLKDIV0 &= ~CLK_CLKDIV0_SDH0DIV_Msk;
-        CLK->CLKDIV0 |= (u32Div1 << CLK_CLKDIV0_SDH0DIV_Pos);
+        _SDH_ReferenceClock = (CLK_GetHXTFreq() / 1000UL);
     }
+    else if(u32SDClkSrc == CLK_CLKSEL0_SDH0SEL_HIRC)
+    {
+        _SDH_ReferenceClock = (__HIRC / 1000UL);
+    }
+    else if(u32SDClkSrc == CLK_CLKSEL0_SDH0SEL_PLL)
+    {
+        _SDH_ReferenceClock = (CLK_GetPLLClockFreq() / 1000UL);
+    }
+    else if(u32SDClkSrc == CLK_CLKSEL0_SDH0SEL_HCLK)
+    {
+        _SDH_ReferenceClock = (CLK_GetHCLKFreq() / 1000UL);
+    }
+
+    if(u32SDClockKhz >= 50000UL)
+    {
+        u32SDClockKhz = 50000UL;
+    }
+    u32Rate = _SDH_ReferenceClock / u32SDClockKhz;
+
+    /* choose slower clock if system clock cannot divisible by wanted clock */
+    if(_SDH_ReferenceClock % u32SDClockKhz != 0UL)
+    {
+        u32Rate++;
+    }
+
+    if(u32Rate >= SDH_CLK_DIV0_MAX)
+    {
+        u32Rate = SDH_CLK_DIV0_MAX;
+    }
+
+    /* --- calculate the second divider CLKDIV0[SDHOST_N] */
+    if(u32Rate == 0UL)
+    {
+        u32Div1 = 0UL;
+    }
+    else
+    {
+        u32Div1 = ((u32Rate - 1UL) & 0xFFUL);
+    }
+
+    /* --- setup register */
+    /* M261 is only support SDH0 */
+    CLK->CLKDIV0 &= ~CLK_CLKDIV0_SDH0DIV_Msk;
+    CLK->CLKDIV0 |= (u32Div1 << CLK_CLKDIV0_SDH0DIV_Pos);
 }
 
 uint32_t SDH_CardDetection(SDH_T *sdh)

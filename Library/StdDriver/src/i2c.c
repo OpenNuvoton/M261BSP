@@ -41,7 +41,7 @@ uint32_t I2C_Open(I2C_T *i2c, uint32_t u32BusClock)
     uint32_t u32Div;
     uint32_t u32Pclk;
 
-    if((i2c == I2C1) || (i2c == I2C1_NS))
+    if(i2c == I2C1)
     {
         u32Pclk = CLK_GetPCLK1Freq();
     }
@@ -190,7 +190,7 @@ uint32_t I2C_GetBusClockFreq(I2C_T *i2c)
     uint32_t u32Divider = i2c->CLKDIV;
     uint32_t u32Pclk;
 
-    if((i2c == I2C1) || (i2c == I2C1_NS))
+    if(i2c == I2C1)
     {
         u32Pclk = CLK_GetPCLK1Freq();
     }
@@ -217,7 +217,7 @@ uint32_t I2C_SetBusClockFreq(I2C_T *i2c, uint32_t u32BusClock)
     uint32_t u32Div;
     uint32_t u32Pclk;
 
-    if((i2c == I2C1) || (i2c == I2C1_NS))
+    if(i2c == I2C1)
     {
         u32Pclk = CLK_GetPCLK1Freq();
     }

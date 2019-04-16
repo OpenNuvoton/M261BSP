@@ -48,14 +48,7 @@ void CRC_Open(uint32_t u32Mode, uint32_t u32Attribute, uint32_t u32Seed, uint32_
 {
     CRC_T *pCRC;
 
-    if((__PC()&NS_OFFSET) == NS_OFFSET)
-    {
-        pCRC = CRC_NS;
-    }
-    else
-    {
-        pCRC = CRC;
-    }
+    pCRC = CRC;
 
     pCRC->SEED = u32Seed;
     pCRC->CTL = u32Mode | u32Attribute | u32DataLen | CRC_CTL_CRCEN_Msk;
@@ -78,14 +71,7 @@ uint32_t CRC_GetChecksum(void)
     CRC_T *pCRC;
     uint32_t u32Checksum = 0UL;
 
-    if((__PC()&NS_OFFSET) == NS_OFFSET)
-    {
-        pCRC = CRC_NS;
-    }
-    else
-    {
-        pCRC = CRC;
-    }
+    pCRC = CRC;
 
     switch(pCRC->CTL & CRC_CTL_CRCMODE_Msk)
     {

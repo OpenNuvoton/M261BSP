@@ -52,7 +52,7 @@ void QEI_DisableInt(QEI_T* qei, uint32_t u32IntSel)
     QEI_DISABLE_INT(qei, u32IntSel);
 
     /* Disable NVIC QEI IRQ */
-    if((qei == QEI0) || (qei == QEI0_NS))
+    if(qei == QEI0)
     {
         NVIC_DisableIRQ(QEI0_IRQn);
     }
@@ -79,7 +79,7 @@ void QEI_EnableInt(QEI_T* qei, uint32_t u32IntSel)
     QEI_ENABLE_INT(qei, u32IntSel);
 
     /* Enable NVIC QEI IRQ */
-    if((qei == QEI0) || (qei == QEI0_NS))
+    if(qei == QEI0)
     {
         NVIC_EnableIRQ(QEI0_IRQn);
     }

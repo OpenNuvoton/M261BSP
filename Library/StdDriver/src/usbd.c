@@ -71,14 +71,7 @@ void USBD_Open(const S_USBD_INFO_T *param, CLASS_REQ pfnClassReq, SET_INTERFACE_
 {
     USBD_T *pUSBD;
 
-    if((__PC() & NS_OFFSET) == NS_OFFSET)
-    {
-        pUSBD = USBD_NS;
-    }
-    else
-    {
-        pUSBD = USBD;
-    }
+    pUSBD = USBD;
 
     g_USBD_sInfo = param;
     g_USBD_pfnClassRequest = pfnClassReq;
@@ -316,16 +309,8 @@ void USBD_StandardRequest(void)
     USBD_T *pUSBD;
     OTG_T *pOTG;
 
-    if((__PC() & NS_OFFSET) == NS_OFFSET)
-    {
-        pUSBD = USBD_NS;
-        pOTG = OTG_NS;
-    }
-    else
-    {
-        pUSBD = USBD;
-        pOTG = OTG;
-    }
+    pUSBD = USBD;
+    pOTG = OTG;
 
     /* clear global variables for new request */
     g_USBD_pu8CtrlInPointer = 0;
@@ -682,14 +667,7 @@ void USBD_SwReset(void)
     uint32_t i;
     USBD_T *pUSBD;
 
-    if((__PC() & NS_OFFSET) == NS_OFFSET)
-    {
-        pUSBD = USBD_NS;
-    }
-    else
-    {
-        pUSBD = USBD;
-    }
+    pUSBD = USBD;
 
     /* Reset all variables for protocol */
     g_USBD_pu8CtrlInPointer = 0;

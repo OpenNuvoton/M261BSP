@@ -73,7 +73,7 @@ void ECAP_EnableINT(ECAP_T* ecap, uint32_t u32Mask)
     ecap->CTL0 |= (u32Mask);
 
     /* Enable NVIC ECAP IRQ */
-    if((ecap == ECAP0) || (ecap == ECAP0_NS))
+    if(ecap == ECAP0)
     {
         NVIC_EnableIRQ(ECAP0_IRQn);
     }
@@ -101,7 +101,7 @@ void ECAP_DisableINT(ECAP_T* ecap, uint32_t u32Mask)
     (ecap->CTL0) &= ~(u32Mask);
 
     /* Disable NVIC ECAP IRQ */
-    if((ecap == ECAP0) || (ecap == ECAP0_NS))
+    if(ecap == ECAP0)
     {
         NVIC_DisableIRQ(ECAP0_IRQn);
     }

@@ -19,11 +19,3 @@ NUBL32_INFO 0x38000 ; located in 224K
         FwInfo.o
     }
 }
-
-NUBL32_NSC 0x3F800 0x800 ; located in 254K (size: 2KB)
-{
-    NSC_ROM +0
-    {
-        *(Veneer$$CMSE)
-    }
-}

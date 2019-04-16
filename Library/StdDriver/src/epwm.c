@@ -40,7 +40,7 @@ uint32_t EPWM_ConfigCaptureChannel(EPWM_T *epwm, uint32_t u32ChannelNum, uint32_
     uint8_t u8BreakLoop = 0U;
 
     /* clock source is from PCLK */
-    if((epwm == EPWM0) || (epwm == EPWM0_NS))
+    if(epwm == EPWM0)
     {
         u32PWMClockSrc = CLK_GetPCLK0Freq();
     }
@@ -109,7 +109,7 @@ uint32_t EPWM_ConfigOutputChannel(EPWM_T *epwm, uint32_t u32ChannelNum, uint32_t
     uint32_t u32Prescale = 1U, u32CNR = 0xFFFFU;
 
     /* clock source is from PCLK */
-    if((epwm == EPWM0) || (epwm == EPWM0_NS))
+    if(epwm == EPWM0)
     {
         u32PWMClockSrc = CLK_GetPCLK0Freq();
     }

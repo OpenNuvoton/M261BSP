@@ -249,11 +249,11 @@ uint32_t TIMER_GetModuleClock(TIMER_T *timer)
     {
         u32Src = CLK_GetModuleClockSource(TMR1_MODULE);
     }
-    else if((timer == TIMER2) || (timer == TIMER2_NS))
+    else if(timer == TIMER2)
     {
         u32Src = CLK_GetModuleClockSource(TMR2_MODULE);
     }
-    else if((timer == TIMER3) || (timer == TIMER3_NS))
+    else if(timer == TIMER3)
     {
         u32Src = CLK_GetModuleClockSource(TMR3_MODULE);
     }
@@ -318,10 +318,6 @@ void TIMER_EnableFreqCounter(TIMER_T *timer,
     else if(timer == TIMER2)
     {
         t = TIMER3;
-    }
-    else if(timer == TIMER2_NS)
-    {
-        t = TIMER3_NS;
     }
     else
     {

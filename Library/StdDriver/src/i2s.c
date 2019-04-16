@@ -94,12 +94,9 @@ uint32_t I2S_Open(I2S_T *i2s, uint32_t u32MasterSlave, uint32_t u32SampleRate, u
     uint16_t u16Divider;
     uint32_t u32BitRate, u32SrcClk;
 
-    if(!(__PC() & (1UL << 28UL)))
-    {
-        /* Reset I2S */
-        SYS->IPRST1 |= SYS_IPRST1_I2S0RST_Msk;
-        SYS->IPRST1 &= ~SYS_IPRST1_I2S0RST_Msk;
-    }
+    /* Reset I2S */
+    SYS->IPRST1 |= SYS_IPRST1_I2S0RST_Msk;
+    SYS->IPRST1 &= ~SYS_IPRST1_I2S0RST_Msk;
 
     /* Configure I2S controller according to input parameters. */
     i2s->CTL0 = u32MasterSlave | u32WordWidth | u32MonoData | u32DataFormat | I2S_FIFO_TX_LEVEL_WORD_8 | I2S_FIFO_RX_LEVEL_WORD_8;

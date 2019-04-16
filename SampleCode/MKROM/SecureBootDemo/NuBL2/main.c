@@ -2,7 +2,7 @@
  * @file     main.c
  * @version  V3.00
  * @brief    Demonstrate how to generate a boot image(NuBL2) and can be authenticated by Secure Botloader(NuBL1).
- *           After NuBL2 runs, NuBL2 will authenticate NuBL32 and NuBL33 then jumpt to execute in NuBL32.
+ *           After NuBL2 runs, NuBL2 will authenticate NuBL32 then jumpt to execute in NuBL32.
  *
  * @copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
  ******************************************************************************/
@@ -206,7 +206,7 @@ int main(void)
     /* Init UART for printf */
     UART_Init();
 
-    printf("\n\nCPU @ %d Hz (Non-secure flash base: 0x%x)\n", SystemCoreClock, BL_GetNSBoundary());
+    printf("\n\nCPU @ %d Hz\n", SystemCoreClock);
     printf("+------------------------------------------+\n");
     printf("|    SecureBootDemo - NuBL2 Sample Code    |\n");
     printf("+------------------------------------------+\n\n");
@@ -232,20 +232,7 @@ int main(void)
         u32NuBL32Base = g_NuBL3xFwInfo.mData.au32FwRegion[0].u32Start;
         printf("\nNuBL2 identify NuBL32 public key and verify NuBL32 F/W integrity PASS.\n");
     }
-    
-    
-    /* Verify NuBL33 identity and F/W integrity */
-    memcpy((void *)&g_NuBL3xFwInfo, (void *)NUBL33_FW_INFO_BASE, sizeof(FW_INFO_T));
-    if(VerifyNuBL3x((uint32_t *)&g_NuBL3xFwInfo, NUBL33_FW_INFO_BASE) == -1)
-    {
-        printf("\n\nNuBL2 verifies NuBL33 FAIL.\n");
-        while(1) {}
-    }
-    else
-    {
-        printf("\nNuBL2 identify NuBL33 public key and verify NuBL33 F/W integrity PASS.\n");
-    }
-    
+          
     
     /* Jump to execute NuBL32 F/W */
     printf("\nJump to execute NuBL32...\n");

@@ -112,7 +112,6 @@ void CLK_Idle(void)
   * @return     External high frequency crystal frequency
   * @details    This function get external high frequency crystal frequency. The frequency unit is Hz.
   */
-__NONSECURE_ENTRY_WEAK
 uint32_t CLK_GetHXTFreq(void)
 {
     uint32_t u32Freq = 0UL;
@@ -137,7 +136,6 @@ uint32_t CLK_GetHXTFreq(void)
   * @details    This function get external low frequency crystal frequency. The frequency unit is Hz.
   */
 
-__NONSECURE_ENTRY_WEAK
 uint32_t CLK_GetLXTFreq(void)
 {
     uint32_t u32Freq = 0UL;
@@ -162,7 +160,6 @@ uint32_t CLK_GetLXTFreq(void)
   * @details    This function get HCLK frequency. The frequency unit is Hz.
   */
 
-__NONSECURE_ENTRY_WEAK
 uint32_t CLK_GetHCLKFreq(void)
 {
     SystemCoreClockUpdate();
@@ -176,7 +173,6 @@ uint32_t CLK_GetHCLKFreq(void)
   * @details    This function get PCLK0 frequency. The frequency unit is Hz.
   */
 
-__NONSECURE_ENTRY_WEAK
 uint32_t CLK_GetPCLK0Freq(void)
 {
     SystemCoreClockUpdate();
@@ -190,7 +186,6 @@ uint32_t CLK_GetPCLK0Freq(void)
   * @details    This function get PCLK1 frequency. The frequency unit is Hz.
   */
 
-__NONSECURE_ENTRY_WEAK
 uint32_t CLK_GetPCLK1Freq(void)
 {
     SystemCoreClockUpdate();
@@ -204,7 +199,6 @@ uint32_t CLK_GetPCLK1Freq(void)
   * @details    This function get CPU frequency. The frequency unit is Hz.
   */
 
-__NONSECURE_ENTRY_WEAK
 uint32_t CLK_GetCPUFreq(void)
 {
     uint32_t u32Freq, u32HclkSrc, u32HclkDiv;
@@ -1067,7 +1061,6 @@ void CLK_EnableSPDWKPin(uint32_t u32Port, uint32_t u32Pin, uint32_t u32TriggerTy
   * @details    This function get PLL frequency. The frequency unit is Hz.
   */
 
-__NONSECURE_ENTRY_WEAK
 uint32_t CLK_GetPLLClockFreq(void)
 {
     uint32_t u32PllFreq = 0UL, u32PllReg;
@@ -1151,7 +1144,6 @@ uint32_t CLK_GetPLLClockFreq(void)
   * @details    This function get selected module clock source.
   */
 
-__NONSECURE_ENTRY_WEAK
 uint32_t CLK_GetModuleClockSource(uint32_t u32ModuleIdx)
 {
     uint32_t u32TmpVal = 0UL, u32TmpAddr = 0UL;
@@ -1207,7 +1199,6 @@ uint32_t CLK_GetModuleClockSource(uint32_t u32ModuleIdx)
   * @details    This function get selected module clock divider number.
   */
 
-__NONSECURE_ENTRY_WEAK
 uint32_t CLK_GetModuleClockDivider(uint32_t u32ModuleIdx)
 {
     uint32_t u32TmpVal = 0UL, u32TmpAddr = 0UL;

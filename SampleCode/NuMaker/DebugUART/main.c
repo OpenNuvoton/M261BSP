@@ -86,18 +86,15 @@ int main()
     printf("+------------------------------------------------------------------+\n");
 
     /* Init GPIO for LED toggle */
-    PA->MODE = (GPIO_MODE_OUTPUT << 10 * 2) | (GPIO_MODE_OUTPUT << 11 * 2);
-    PA10 = 1;
-    PA11 = 0;
+    PB->MODE = (GPIO_MODE_OUTPUT << 10 * 2);
+    PB10 = 1;
 
     i = 0;
     while(1)
     {
-        PA10 ^= 1;
-        PA11 ^= 1;
+        PB10 ^= 1;
         CLK_SysTickLongDelay(200000);
-        PA10 ^= 1;
-        PA11 ^= 1;
+        PB10 ^= 1;
         CLK_SysTickLongDelay(200000);
 
         printf("Iter: %d\n", i++);

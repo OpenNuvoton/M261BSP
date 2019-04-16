@@ -11,7 +11,6 @@
 
 
 #define NUBL32_FW_INFO_BASE     0x00038000ul    // 224K   
-#define NUBL33_FW_INFO_BASE     0x10078000ul    // 480K (Non-secure flash region)  
 
 
 typedef struct
@@ -27,8 +26,7 @@ typedef struct
                             bit[1:0]:   Reserved
                             bit[2]:     1: Info Hash includes PDID / 0: Not include PDID
                             bit[3]:     1: Info Hash includes UID / 0: Not include UID
-                            bit[4]:     1: Info Hash inculdes UICD / 0: Not include UICD
-                            bit[31:5]:  Reserved
+                            bit[31:4]:  Reserved
                         */
     uint32_t        u32FwRegionLen;     /* 32-bits */
     FW_REGION_T     au32FwRegion[1];    /* (8*1) bytes */

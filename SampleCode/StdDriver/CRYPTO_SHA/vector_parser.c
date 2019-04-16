@@ -20,6 +20,9 @@ static char  g_pi8LineBuff[20 * 1024];
 #ifdef __ICCARM__
 #pragma data_alignment=32
 uint8_t g_au8ShaDataPool[8192] ;
+
+extern uint32_t g_u32VectorDataBase;
+
 #else
 __attribute__((aligned(32))) uint8_t g_au8ShaDataPool[8192] ;
 #endif
@@ -34,7 +37,7 @@ void OpenTestVector(void)
     /* Get test vector base */
     g_pu8FileBase = (uint8_t *)&g_u32VectorDataBase;
 #ifdef __ICCARM__
-    _u32FileSize = 0x213f;
+    g_u32FileSize = 0x213f;
 #else
     /* Get vector size */
     g_u32FileSize = (uint32_t)&g_u32VectorDataLimit - (uint32_t)&g_u32VectorDataBase;

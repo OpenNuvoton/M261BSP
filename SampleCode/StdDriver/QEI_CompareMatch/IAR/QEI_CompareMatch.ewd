@@ -44,7 +44,7 @@
                 </option>
                 <option>
                     <name>MemFile</name>
-                    <state>$TOOLKIT_DIR$\CONFIG\debugger\Nuvoton\M261.ddf</state>
+                    <state>$TOOLKIT_DIR$\CONFIG\debugger\Nuvoton\iom261ae.ddf</state>
                 </option>
                 <option>
                     <name>RunToEnable</name>
@@ -112,7 +112,7 @@
                 </option>
                 <option>
                     <name>FlashLoadersV3</name>
-                    <state>$TOOLKIT_DIR$\config\flashloader\Nuvoton\FlashM261APROM.board</state>
+                    <state>$TOOLKIT_DIR$\config\flashloader\Nuvoton\M261_APROM.board</state>
                 </option>
                 <option>
                     <name>OCImagesSuppressCheck1</name>
