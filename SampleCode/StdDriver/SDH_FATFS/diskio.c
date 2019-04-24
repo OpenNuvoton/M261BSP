@@ -38,10 +38,7 @@ DSTATUS disk_initialize(BYTE pdrv)        /* Physical drive number (0..) */
 {
     SDH_T *pSDH;
 
-    if((__PC()&NS_OFFSET) == NS_OFFSET)
-        pSDH = SDH0_NS;
-    else
-        pSDH = SDH0;
+    pSDH = SDH0;
 
     if(pdrv == 0)
     {
@@ -65,10 +62,7 @@ DSTATUS disk_status(BYTE pdrv)        /* Physical drive number (0..) */
 {
     SDH_T *pSDH;
 
-    if((__PC()&NS_OFFSET) == NS_OFFSET)
-        pSDH = SDH0_NS;
-    else
-        pSDH = SDH0;
+    pSDH = SDH0;
 
     if(pdrv == 0)
     {
@@ -101,10 +95,7 @@ DRESULT disk_read(
     uint32_t tmp_StartBufAddr;
     SDH_T *pSDH;
 
-    if((__PC()&NS_OFFSET) == NS_OFFSET)
-        pSDH = SDH0_NS;
-    else
-        pSDH = SDH0;
+    pSDH = SDH0;
 
     //printf("disk_read - drv:%d, sec:%d, cnt:%d, buff:0x%x\n", pdrv, sector, count, (uint32_t)buff);
     if((uint32_t)buff % 4)
@@ -160,10 +151,7 @@ DRESULT disk_write(
     SDH_T *pSDH;
     uint32_t u32BufIdx;
 
-    if((__PC()&NS_OFFSET) == NS_OFFSET)
-        pSDH = SDH0_NS;
-    else
-        pSDH = SDH0;
+    pSDH = SDH0;
 
     //printf("disk_write - drv:%d, sec:%d, cnt:%d, buff:0x%x\n", pdrv, sector, count, (uint32_t)buff);
     if((uint32_t)buff % 4)
