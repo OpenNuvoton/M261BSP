@@ -158,7 +158,7 @@ extern SDH_INFO_T SD0;
  *            0: Card removed.
  * \hideinitializer
  */
-#define SDH_IS_CARD_PRESENT(sdh) ((((sdh) == SDH0)||((sdh) == SDH0_NS))? SD0.IsCardInsert : 0)
+#define SDH_IS_CARD_PRESENT(sdh) (((sdh) == SDH0)? SD0.IsCardInsert : 0)
 
 /**
  *  @brief    Get SD Card capacity.
@@ -168,7 +168,7 @@ extern SDH_INFO_T SD0;
  *  @return   SD Card capacity. (unit: KByte)
  * \hideinitializer
  */
-#define SDH_GET_CARD_CAPACITY(sdh)  ((((sdh) == SDH0)||((sdh) == SDH0_NS))? SD0.diskSize : 0)
+#define SDH_GET_CARD_CAPACITY(sdh)  (((sdh) == SDH0)? SD0.diskSize : 0)
 
 
 void SDH_Open(SDH_T *sdh, uint32_t u32CardDetSrc);
