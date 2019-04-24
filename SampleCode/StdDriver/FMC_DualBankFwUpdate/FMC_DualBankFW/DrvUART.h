@@ -447,7 +447,7 @@ extern volatile uint32_t TEST_PORT, TX_PORT, RX_PORT, u32ToutCnt;
 
 
 /*===== for Tx and Rx data =====*/
-#define TXBUFSIZE 0x213c
+#define TXBUFSIZE 0x2028
 extern volatile uint32_t u32TxIndex, u32RxIndex;
 extern uint8_t  u8RxData[TXBUFSIZE];
 //extern uint16_t u16TxData[RXBUFSIZE], u16RxData[RXBUFSIZE];
