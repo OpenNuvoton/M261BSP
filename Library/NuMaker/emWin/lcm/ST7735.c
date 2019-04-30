@@ -57,22 +57,22 @@ Purpose     : Display controller configuration (single layer)
 //
 // Hardware related
 //
-#define SPI_LCD_PORT  SPI1
+#define SPI_LCD_PORT  USPI0
 
-#define GPIO_SPI1_SS PH9
-#define GPIOPORT_SPI1_SS PH
-#define PINMASK_SPI1_SS BIT9
+#define GPIO_SPI_SS PA8
+#define GPIOPORT_SPI_SS PA
+#define PINMASK_SPI_SS BIT8
 
-#define GPIO_LCM_DC PA8
-#define GPIOPORT_LCM_DC PA
-#define PINMASK_LCM_DC BIT8
+#define GPIO_LCM_DC PB2
+#define GPIOPORT_LCM_DC PB
+#define PINMASK_LCM_DC BIT2
 
-#define GPIO_LCM_RESET PA9
-#define GPIOPORT_LCM_RESET PA
-#define PINMASK_LCM_RESET BIT9
+#define GPIO_LCM_RESET PB3
+#define GPIOPORT_LCM_RESET PB
+#define PINMASK_LCM_RESET BIT3
 
-#define SPI_CS_SET    GPIO_SPI1_SS = 1
-#define SPI_CS_CLR    GPIO_SPI1_SS = 0
+#define SPI_CS_SET    GPIO_SPI_SS = 1
+#define SPI_CS_CLR    GPIO_SPI_SS = 0
 
 #define LCM_DC_SET    GPIO_LCM_DC = 1
 #define LCM_DC_CLR    GPIO_LCM_DC = 0
@@ -92,10 +92,10 @@ U8 _Read1(void)
 #else
     LCM_DC_SET;
     SPI_CS_CLR;
-    SPI_WRITE_TX(SPI_LCD_PORT, 0x00);
-    SPI_READ_RX(SPI_LCD_PORT);
+    USPI_WRITE_TX(SPI_LCD_PORT, 0x00);
+    USPI_READ_RX(SPI_LCD_PORT);
     SPI_CS_SET;
-    return (SPI_READ_RX(SPI_LCD_PORT));
+    return (USPI_READ_RX(SPI_LCD_PORT));
 #endif
 }
 
@@ -112,9 +112,9 @@ void _ReadM1(U8 * pData, int NumItems)
     SPI_CS_CLR;
     while(NumItems--)
     {
-        SPI_WRITE_TX(SPI_LCD_PORT, 0x00);
+        USPI_WRITE_TX(SPI_LCD_PORT, 0x00);
         while(SPI_IS_BUSY(SPI_LCD_PORT));
-        *pData++ = SPI_READ_RX(SPI_LCD_PORT);
+        *pData++ = USPI_READ_RX(SPI_LCD_PORT);
     }
     SPI_CS_SET;
 #endif
@@ -127,9 +127,14 @@ void _ReadM1(U8 * pData, int NumItems)
 void _Write0(U8 Cmd)
 {
     LCM_DC_CLR;
-    
-    SPI_WRITE_TX(SPI_LCD_PORT, Cmd);
-    while(SPI_IS_BUSY(SPI_LCD_PORT));
+
+    SPI_CS_CLR;
+
+    while(USPI_GET_TX_FULL_FLAG(SPI_LCD_PORT));
+    USPI_WRITE_TX(SPI_LCD_PORT, Cmd);
+    while(USPI_IS_BUSY(SPI_LCD_PORT));
+
+    SPI_CS_SET;
 }
 
 /*********************************************************************
@@ -139,9 +144,14 @@ void _Write0(U8 Cmd)
 void _Write1(U8 Data)
 {
     LCM_DC_SET;
-    
-    SPI_WRITE_TX(SPI_LCD_PORT, Data);
-    while(SPI_IS_BUSY(SPI_LCD_PORT));
+
+    SPI_CS_CLR;
+
+    while(USPI_GET_TX_FULL_FLAG(SPI_LCD_PORT));
+    USPI_WRITE_TX(SPI_LCD_PORT, Data);
+    while(USPI_IS_BUSY(SPI_LCD_PORT));
+
+    SPI_CS_SET;
 }
 
 /*********************************************************************
@@ -151,44 +161,48 @@ void _Write1(U8 Data)
 void _WriteM1(U8 * pData, int NumItems)
 {
     LCM_DC_SET;
+
+    SPI_CS_CLR;
+
     while(NumItems--)
     {
-        while(SPI_LCD_PORT->STATUS & SPI_STATUS_TXFULL_Msk);
-        SPI_WRITE_TX(SPI_LCD_PORT, *pData++);
+        while(USPI_GET_TX_FULL_FLAG(SPI_LCD_PORT));
+        USPI_WRITE_TX(SPI_LCD_PORT, *pData++);
+        while (USPI_IS_BUSY(SPI_LCD_PORT));
     }
+
+    SPI_CS_SET;
 }
 
 static void _Open_SPI(void)
 {
     GPIO_SetMode(GPIOPORT_LCM_DC, PINMASK_LCM_DC, GPIO_MODE_OUTPUT);
     GPIO_SetMode(GPIOPORT_LCM_RESET, PINMASK_LCM_RESET, GPIO_MODE_OUTPUT);
-    GPIO_SetMode(GPIOPORT_SPI1_SS, PINMASK_SPI1_SS, GPIO_MODE_OUTPUT); //cs pin for gpiod
+    GPIO_SetMode(PA, BIT6, GPIO_MODE_OUTPUT);
+    GPIO_SetMode(GPIOPORT_SPI_SS, PINMASK_SPI_SS, GPIO_MODE_OUTPUT); //cs pin for gpiod
 
-    /* Setup SPI1 multi-function pins */
-    SYS->GPE_MFPL &= ~(SYS_GPE_MFPL_PE0MFP_Msk       | SYS_GPE_MFPL_PE1MFP_Msk);
-    SYS->GPE_MFPL |=  (SYS_GPE_MFPL_PE0MFP_SPI1_MOSI | SYS_GPE_MFPL_PE1MFP_SPI1_MISO);
-    
-    SYS->GPH_MFPH &= ~(SYS_GPH_MFPH_PH8MFP_Msk | SYS_GPH_MFPH_PH9MFP_Msk);
-    SYS->GPH_MFPH |=  (SYS_GPH_MFPH_PH8MFP_SPI1_CLK | SYS_GPH_MFPH_PH9MFP_SPI1_SS);
+    /* Setup USPI0 multi-function pins */
+    SYS->GPA_MFPH &= ~(SYS_GPA_MFPH_PA9MFP_Msk);
+    SYS->GPA_MFPH |=  (SYS_GPA_MFPH_PA9MFP_USCI0_DAT1);
+
+    SYS->GPA_MFPH &= ~(SYS_GPA_MFPH_PA11MFP_Msk       | SYS_GPA_MFPH_PA10MFP_Msk);
+    SYS->GPA_MFPH |=  (SYS_GPA_MFPH_PA11MFP_USCI0_CLK | SYS_GPA_MFPH_PA10MFP_USCI0_DAT0);
 
     /* Set IO to high slew rate */
-    PE->SLEWCTL |= 3;
-    PH->SLEWCTL |= (3 << 8);
-    
-    /* Enable SPI1 */
-    CLK_EnableModuleClock(SPI1_MODULE);
-    CLK_SetModuleClock(SPI1_MODULE, CLK_CLKSEL2_SPI1SEL_PCLK0, 0);
+    PA->SLEWCTL |= (0x00000F00);
 
-    SPI_Open(SPI_LCD_PORT, SPI_MASTER, SPI_MODE_0, 8, 32000000);
-    
-    /* Clear suspend interval */
-    SPI_LCD_PORT->CTL &= (~SPI_CTL_SUSPITV_Msk);
-    SPI_LCD_PORT->CTL |= (0 << SPI_CTL_SUSPITV_Pos);
-    
-    
-    /* Disable auto SS function, control SS signal manually. */
-    SPI_EnableAutoSS(SPI_LCD_PORT, SPI_SS, QSPI_SS_ACTIVE_LOW);
-    SPI_ENABLE(SPI_LCD_PORT);
+    /* Enable USCI0 peripheral clock */
+    CLK_EnableModuleClock(USCI0_MODULE);
+
+    /*---------------------------------------------------------------------------------------------------------*/
+    /* Init USCI_SPI                                                                                                */
+    /*---------------------------------------------------------------------------------------------------------*/
+    /* Configure USCI_SPI0 */
+    /* Configure USCI_SPI0 as a master, USCI_SPI clock rate 32MHz,
+       clock idle low, 8-bit transaction, drive output on falling clock edge and latch input on rising edge. */
+    USPI_Open(USPI0, USPI_MASTER, USPI_MODE_0, 8, 32000000);
+    /* Disable the automatic hardware slave selection function. */
+    USPI_DisableAutoSS(SPI_LCD_PORT);
 }
 
 /*********************************************************************
@@ -198,7 +212,8 @@ static void _Open_SPI(void)
 * Purpose:
 *   Initializes the display controller
 */
-void _InitController(void) {
+void _InitController(void)
+{
     int i;
     static uint8_t s_InitOnce = 0;
 

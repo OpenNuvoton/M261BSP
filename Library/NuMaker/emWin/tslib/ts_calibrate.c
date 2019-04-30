@@ -12,23 +12,12 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
-//#include <signal.h>
-//#include <string.h>
-//#include <unistd.h>
-//#include <sys/fcntl.h>
-//#include <sys/ioctl.h>
-//#include <sys/mman.h>
-//#include <sys/time.h>
+#include "NuMicro.h"
 #include "tslib.h"
 #include "fbutils.h"
 #include "testutils.h"
-//#include "wbio.h"
-//#include "wbtypes.h"
-//#include "wblib.h"
-//#include "LCDconf.h"
 #include "GUI.h"
 #include "M261TouchPanel.h"
-//#include "nvtfat.h"
 
 typedef struct
 {

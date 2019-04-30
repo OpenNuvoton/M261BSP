@@ -1,11 +1,7 @@
 
 #include "NuMicro.h"
 
-//#include "stdlib.h"
-#include "GUI.h"
-//#include "W55FA93_adc.h"
 #include "M261TouchPanel.h"
-//#include "lcdconf.h"
 
 
 
@@ -48,21 +44,21 @@ uint16_t Get_TP_X(void)
     uint16_t    x_adc_in;
 
     /*=== Get X from ADC input ===*/
-    GPIO_SetMode(PB, BIT8, GPIO_MODE_OUTPUT);   // XR
-    GPIO_SetMode(PB, BIT9, GPIO_MODE_INPUT);    // YD
-    GPIO_SetMode(PB, BIT10, GPIO_MODE_OUTPUT);   // XL
-    PB8 = 1;
-    PB10 = 0;
+    GPIO_SetMode(PB, BIT4, GPIO_MODE_OUTPUT);   // XR
+    GPIO_SetMode(PB, BIT5, GPIO_MODE_INPUT);    // YD
+    GPIO_SetMode(PB, BIT6, GPIO_MODE_OUTPUT);   // XL
+    PB4 = 1;
+    PB6 = 0;
 
-    /* Configure the GPB11 ADC analog input pins.  */
-    SYS->GPB_MFPH &= ~(SYS_GPB_MFPH_PB11MFP_Msk | SYS_GPB_MFPH_PB8MFP_Msk);
-    SYS->GPB_MFPH |= SYS_GPB_MFPH_PB11MFP_EADC0_CH11;
+    /* Configure the GPB7 ADC analog input pins.  */
+    SYS->GPB_MFPL &= ~(SYS_GPB_MFPL_PB7MFP_Msk | SYS_GPB_MFPL_PB4MFP_Msk);
+    SYS->GPB_MFPL |= SYS_GPB_MFPL_PB7MFP_EADC0_CH7;
 
-    /* Disable the GPB11 digital input path to avoid the leakage current. */
-    GPIO_DISABLE_DIGITAL_PATH(PB, BIT11);
+    /* Disable the GPB7 digital input path to avoid the leakage current. */
+    GPIO_DISABLE_DIGITAL_PATH(PB, BIT7);
 
-    /* Configure the sample module 1 for analog input channel 11 and software trigger source.*/
-    EADC_ConfigSampleModule(EADC, 1, EADC_SOFTWARE_TRIGGER, 11); // YU
+    /* Configure the sample module 1 for analog input channel 7 and software trigger source.*/
+    EADC_ConfigSampleModule(EADC, 1, EADC_SOFTWARE_TRIGGER, 7); // YU
 
     /* Clear the A/D ADINT1 interrupt flag for safe */
     EADC_CLR_INT_FLAG(EADC, EADC_STATUS2_ADIF1_Msk);
@@ -93,21 +89,21 @@ uint16_t Get_TP_Y(void)
     uint16_t    y_adc_in;
 
     /*=== Get Y from ADC input ===*/
-    GPIO_SetMode(PB, BIT11, GPIO_MODE_OUTPUT);   // YU
-    GPIO_SetMode(PB, BIT9, GPIO_MODE_OUTPUT);   // YD
-    GPIO_SetMode(PB, BIT10, GPIO_MODE_INPUT);    // XL
-    PB11 = 1;
-    PB9 = 0;
+    GPIO_SetMode(PB, BIT7, GPIO_MODE_OUTPUT);   // YU
+    GPIO_SetMode(PB, BIT5, GPIO_MODE_OUTPUT);   // YD
+    GPIO_SetMode(PB, BIT6, GPIO_MODE_INPUT);    // XL
+    PB7 = 1;
+    PB5 = 0;
 
-    /* Configure the GPB8 ADC analog input pins.  */
-    SYS->GPB_MFPH &= ~(SYS_GPB_MFPH_PB11MFP_Msk | SYS_GPB_MFPH_PB8MFP_Msk);
-    SYS->GPB_MFPH |= SYS_GPB_MFPH_PB8MFP_EADC0_CH8;
+    /* Configure the GPB4 ADC analog input pins.  */
+    SYS->GPB_MFPL &= ~(SYS_GPB_MFPL_PB7MFP_Msk | SYS_GPB_MFPL_PB4MFP_Msk);
+    SYS->GPB_MFPL |= SYS_GPB_MFPL_PB4MFP_EADC0_CH4;
 
-    /* Disable the GPB8 digital input path to avoid the leakage current. */
-    GPIO_DISABLE_DIGITAL_PATH(PB, BIT8);
+    /* Disable the GPB4 digital input path to avoid the leakage current. */
+    GPIO_DISABLE_DIGITAL_PATH(PB, BIT4);
 
-    /* Configure the sample module 2 for analog input channel 8 and software trigger source.*/
-    EADC_ConfigSampleModule(EADC, 2, EADC_SOFTWARE_TRIGGER, 8); // XR
+    /* Configure the sample module 2 for analog input channel 4 and software trigger source.*/
+    EADC_ConfigSampleModule(EADC, 2, EADC_SOFTWARE_TRIGGER, 4); // XR
 
     /* Clear the A/D ADINT1 interrupt flag for safe */
     EADC_CLR_INT_FLAG(EADC, EADC_STATUS2_ADIF1_Msk);
@@ -132,7 +128,7 @@ int Read_TouchPanel(int *x, int *y)
 {
     *x = Get_TP_X();
     *y = Get_TP_Y();
-    if((*x == 0xFFF) || (*y == 0xFFF))
+    if(((*x & 0x0F00) >= 0x0F00) || ((*y & 0x0F00) >= 0x0F00))
         return 0;
     else
         return 1;
