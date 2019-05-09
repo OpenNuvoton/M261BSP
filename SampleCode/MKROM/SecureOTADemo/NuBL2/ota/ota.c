@@ -1454,20 +1454,6 @@ int32_t MassWriteReqProcess(ISP_INFO_T *pISPInfo)
         }
     #endif
     }
-#if 1 //temp solution. host need to send disconnect command while transfer firmware data is finished.
-    else
-    {
-
-        if(g_u32LastSysFwWriteAddr == u32Fw1Start + u32Fw1Size)
-        {
-            printf("NuBL32 update done~\n");
-            /* disconnect local wifi connection */
-            OTA_API_TransferConnClose();
-            printf("g_u8IsFwUpgradeDone\n");
-            g_u8IsFwUpgradeDone = TRUE;
-        }
-    }
-#endif
 
     /* Generate response command and send it out */
     OTA_GenRspPacket(&cmd, cmd.u16PacketID, pISPInfo, STS_OK);
