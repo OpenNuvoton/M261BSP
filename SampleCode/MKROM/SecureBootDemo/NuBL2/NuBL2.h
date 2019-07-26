@@ -26,7 +26,8 @@ typedef struct
                             bit[1:0]:   Reserved
                             bit[2]:     1: Info Hash includes PDID / 0: Not include PDID
                             bit[3]:     1: Info Hash includes UID / 0: Not include UID
-                            bit[31:4]:  Reserved
+                            bit[4]:     1: Info Hash inculdes UICD / 0: Not include UICD
+                            bit[31:5]:  Reserved
                         */
     uint32_t        u32FwRegionLen;     /* 32-bits */
     FW_REGION_T     au32FwRegion[1];    /* (8*1) bytes */
