@@ -150,13 +150,21 @@ void UART_TEST_HANDLE(void)
     uint8_t u8InChar = 0xFF;
     uint32_t u32IntSts = UART0->INTSTS;
 
+    /* Receive Data Available Interrupt Handle */    
     if(u32IntSts & UART_INTSTS_RDAINT_Msk)
     {
         printf("\nInput:");
 
         /* Get all the input characters */
         while(UART_IS_RX_READY(UART0))
-        {
+        {          
+            /* Receive Line Status Error Handle */ 
+            if(u32IntSts & UART_INTSTS_RLSINT_Msk)
+            {                
+                /* Clear Receive Line Status Interrupt */
+                UART_ClearIntFlag(UART0, UART_INTSTS_RLSINT_Msk);   
+            }              
+            
             /* Get the character from UART Buffer */
             u8InChar = UART_READ(UART0);
 
@@ -179,6 +187,7 @@ void UART_TEST_HANDLE(void)
         printf("\nTransmission Test:");
     }
 
+    /* Transmit Holding Register Empty Interrupt Handle */     
     if(u32IntSts & UART_INTSTS_THREINT_Msk)
     {
         uint16_t u16Tmp;
@@ -193,9 +202,11 @@ void UART_TEST_HANDLE(void)
         }
     }
 
-    if(UART0->FIFOSTS & (UART_FIFOSTS_BIF_Msk | UART_FIFOSTS_FEF_Msk | UART_FIFOSTS_PEF_Msk | UART_FIFOSTS_RXOVIF_Msk))
+    /* Buffer Error Interrupt Handle */    
+    if(u32IntSts & UART_INTSTS_BUFERRINT_Msk)   
     {
-        UART0->FIFOSTS = (UART_FIFOSTS_BIF_Msk | UART_FIFOSTS_FEF_Msk | UART_FIFOSTS_PEF_Msk | UART_FIFOSTS_RXOVIF_Msk);
+        /* Clear Buffer Error Interrupt */
+        UART_ClearIntFlag(UART0, UART_INTSTS_BUFERRINT_Msk);             
     }
 }
 
