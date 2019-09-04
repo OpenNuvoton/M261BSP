@@ -328,10 +328,7 @@ uint8_t Intf_IccPowerOn(int32_t intf,
     if(ErrorCode != SLOT_NO_ERROR)
         return ErrorCode;
 
-    if((__PC()&NS_OFFSET) == NS_OFFSET)
-        pSC = (intf == 0) ? SC0_NS : (intf == 1) ? SC1_NS : SC2_NS;
-    else
-        pSC = (intf == 0) ? SC0 : (intf == 1) ? SC1 : SC2;
+    pSC = (intf == 0) ? SC0 : (intf == 1) ? SC1 : SC2;
 
     SC_ResetReader(pSC);
 
@@ -767,10 +764,7 @@ uint8_t Intf_SetClock(int32_t intf, uint8_t u32Cmd)
 {
     SC_T *pSC;
 
-    if((__PC()&NS_OFFSET) == NS_OFFSET)
-        pSC = (intf == 0) ? SC0_NS : (intf == 1) ? SC1_NS : SC2_NS;
-    else
-        pSC = (intf == 0) ? SC0 : (intf == 1) ? SC1 : SC2;
+    pSC = (intf == 0) ? SC0 : (intf == 1) ? SC1 : SC2;
 
     if(intf != 0 && intf != 1 && intf != 2)
         return SLOTERR_BAD_SLOT;
@@ -795,10 +789,7 @@ uint8_t Intf_GetSlotStatus(int32_t intf)
     uint8_t Ret = 0x00;
     SC_T *pSC;
 
-    if((__PC()&NS_OFFSET) == NS_OFFSET)
-        pSC = (intf == 0) ? SC0_NS : (intf == 1) ? SC1_NS : SC2_NS;
-    else
-        pSC = (intf == 0) ? SC0 : (intf == 1) ? SC1 : SC2;
+    pSC = (intf == 0) ? SC0 : (intf == 1) ? SC1 : SC2;
 
     if(intf != 0 && intf != 1 && intf != 2)
         return SLOTERR_BAD_SLOT;
@@ -835,10 +826,7 @@ uint8_t Intf_GetClockStatus(int32_t intf)
 {
     SC_T *pSC;
 
-    if((__PC()&NS_OFFSET) == NS_OFFSET)
-        pSC = (intf == 0) ? SC0_NS : (intf == 1) ? SC1_NS : SC2_NS;
-    else
-        pSC = (intf == 0) ? SC0 : (intf == 1) ? SC1 : SC2;
+    pSC = (intf == 0) ? SC0 : (intf == 1) ? SC1 : SC2;
 
     if(intf != 0 && intf != 1 && intf != 2)
         return SLOTERR_BAD_SLOT;
@@ -859,10 +847,7 @@ uint8_t Intf_AbortTxRx(int32_t intf)
 {
     SC_T *pSC;
 
-    if((__PC()&NS_OFFSET) == NS_OFFSET)
-        pSC = (intf == 0) ? SC0_NS : (intf == 1) ? SC1_NS : SC2_NS;
-    else
-        pSC = (intf == 0) ? SC0 : (intf == 1) ? SC1 : SC2;
+    pSC = (intf == 0) ? SC0 : (intf == 1) ? SC1 : SC2;
 
     if(intf != 0 && intf != 1 && intf != 2)
         return SLOTERR_BAD_SLOT;
