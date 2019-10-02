@@ -98,13 +98,13 @@ int main(void)
     FMC->ISPCTL |= (FMC_ISPCTL_ISPEN_Msk | FMC_ISPCTL_APUEN_Msk);
 
     /* Get APROM size, data flash size and address */
-    g_apromSize = BL_EnableFMC();
-    g_dataFlashAddr = SCU->FNSADDR;
+    g_u32ApromSize = BL_EnableFMC();
+    g_u32DataFlashAddr = SCU->FNSADDR;
 
-    if (g_dataFlashAddr < g_apromSize) {
-        g_dataFlashSize = (g_apromSize - g_dataFlashAddr);
+    if (g_u32DataFlashAddr < g_u32ApromSize) {
+        g_u32DataFlashSize = (g_u32ApromSize - g_u32DataFlashAddr);
     } else {
-        g_dataFlashSize = 0;
+        g_u32DataFlashSize = 0;
     }
 
     /* Init I2C */

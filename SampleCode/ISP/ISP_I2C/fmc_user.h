@@ -13,8 +13,8 @@
 // #define FMC_CONFIG0_ADDR        (FMC_CONFIG_BASE)       /*!< CONFIG 0 Address */
 // #define FMC_CONFIG1_ADDR        (FMC_CONFIG_BASE + 4)   /*!< CONFIG 1 Address */
 
-#define Config0         FMC_CONFIG_BASE
-#define Config1         (FMC_CONFIG_BASE+4)
+#define CONFIG0         FMC_CONFIG_BASE
+#define CONFIG1         (FMC_CONFIG_BASE+4)
 
 #define ISPGO           0x01
 

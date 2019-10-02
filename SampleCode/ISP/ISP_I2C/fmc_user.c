@@ -171,12 +171,12 @@ int EraseAP(unsigned int addr_start, unsigned int size)
 void UpdateConfig(unsigned int *data, unsigned int *res)
 {
     FMC_ENABLE_CFG_UPDATE();
-    FMC_Proc(FMC_ISPCMD_PAGE_ERASE, Config0, Config0 + 16, 0);
-    FMC_Proc(FMC_ISPCMD_PROGRAM, Config0, Config0 + 16, data);
+    FMC_Proc(FMC_ISPCMD_PAGE_ERASE, CONFIG0, CONFIG0 + 16, 0);
+    FMC_Proc(FMC_ISPCMD_PROGRAM, CONFIG0, CONFIG0 + 16, data);
 
     if(res)
     {
-        FMC_Proc(FMC_ISPCMD_READ, Config0, Config0 + 16, res);
+        FMC_Proc(FMC_ISPCMD_READ, CONFIG0, CONFIG0 + 16, res);
     }
 
     FMC_DISABLE_CFG_UPDATE();
