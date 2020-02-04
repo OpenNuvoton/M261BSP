@@ -337,7 +337,8 @@ int8_t VerifyNuBL3xIntegrityFromSD(uint8_t u8BLxSel, uint32_t pu32Key3x[])
 {
     uint32_t u32ReadBufLen, i8Ret = 0, u32FwInfoSize, u32ReadLen, u32DecryptDataLen;
     uint32_t au32HashBuf[8], au32RawData[12], au32ReadBuf[12], au32DecryptRawData[16];
-    uint8_t u8ShaState, u8NotFirstRead;
+    uint32_t u32ShaState;
+    uint8_t u8NotFirstRead;
     uint32_t u32FwSize, start, end, len;
     uint32_t * pu32ReadBuf;
     FW_INFO_T FwInfoTmp;
@@ -373,7 +374,7 @@ int8_t VerifyNuBL3xIntegrityFromSD(uint8_t u8BLxSel, uint32_t pu32Key3x[])
         u32FwSize = FwInfoTmp.mData.au32FwRegion[0].u32Size + FwInfoTmp.mData.au32FwRegion[1].u32Size;
     }
     /* NuBL32 FW integrity check */
-    u8ShaState = 0;
+    u32ShaState = 0;
     u32ReadLen = u32ReadBufLen;
     u32DecryptDataLen = sizeof(au32DecryptRawData);
     while(u32ReadBufLen <= u32ReadLen)
@@ -411,7 +412,7 @@ int8_t VerifyNuBL3xIntegrityFromSD(uint8_t u8BLxSel, uint32_t pu32Key3x[])
                     memcpy((uint8_t *)&au32DecryptRawData, pu32ReadBuf+8, 16);
                 }
 
-                if (u8ShaState)
+                if (u32ShaState)
                 {
                     if (u32FwSize <= u32ReadLen)
                     {
@@ -457,7 +458,7 @@ int8_t VerifyNuBL3xIntegrityFromSD(uint8_t u8BLxSel, uint32_t pu32Key3x[])
                     memcpy((uint8_t *)&au32DecryptRawData, pu32ReadBuf+8, 16);
                 }
 
-                if (u8ShaState == 0)
+                if (u32ShaState == 0)
                 {
                     /* Start of calculate hash */
                     start = (uint32_t )&au32RawData[0];
@@ -488,7 +489,7 @@ int8_t VerifyNuBL3xIntegrityFromSD(uint8_t u8BLxSel, uint32_t pu32Key3x[])
                 u32FwSize -= u32ReadLen;
             }
         }
-        u8ShaState++;
+        u32ShaState++;
     }
     /* Close firmware package file */
     OTA_API_SDClose(u8BLxSel);
@@ -517,6 +518,7 @@ int8_t VerifyNuBL3xIntegrityFromSD(uint8_t u8BLxSel, uint32_t pu32Key3x[])
 int8_t UpdateNuBL3xFwFromSD(uint8_t u8BLxSel, uint32_t pu32Key3x[])
 {
     uint32_t u32ReadBufLen, i8Ret = 0, u32FwInfoSize, u32ReadLen, u32DecryptDataLen, u32Fw1Size, u32Fw1Start, u32LastWriteAddr;
+    uint32_t u32Fw2Start, u32Fw2Size;
     uint32_t au32HashBuf[8], au32RawData[12], au32ReadBuf[12], au32DecryptRawData[16];
     uint8_t u8NotFirstRead;
     uint32_t * pu32ReadBuf;
@@ -540,6 +542,8 @@ int8_t UpdateNuBL3xFwFromSD(uint8_t u8BLxSel, uint32_t pu32Key3x[])
     u32LastWriteAddr = FwInfoTmp.mData.au32FwRegion[0].u32Start;
     u32Fw1Size = FwInfoTmp.mData.au32FwRegion[0].u32Size;
     u32Fw1Start = FwInfoTmp.mData.au32FwRegion[0].u32Start;
+    u32Fw2Size = FwInfoTmp.mData.au32FwRegion[1].u32Size;
+    u32Fw2Start = FwInfoTmp.mData.au32FwRegion[1].u32Start;
 
     u32ReadBufLen = sizeof(au32RawData);
     /* Set read buffer of firmware package data */
@@ -598,13 +602,15 @@ int8_t UpdateNuBL3xFwFromSD(uint8_t u8BLxSel, uint32_t pu32Key3x[])
                         return (-3);
                     }
                     /* Check firmware size is not 0 in FW INFO decription */
-                    if (FwInfoTmp.mData.au32FwRegion[1].u32Size != 0)
+                    if (u32Fw2Size != 0)
                     {
                         /* Check write address of FW INFO is valid in system */
-                        if((i8Ret =_IsValidFlashRegion(FwInfoTmp.mData.au32FwRegion[1].u32Start, FwInfoTmp.mData.au32FwRegion[1].u32Size)) != 0)
+                        if((i8Ret =_IsValidFlashRegion(u32Fw2Start, u32Fw2Size)) != 0)
                             return i8Ret;
 
-                        g_u32LastSysFwWriteAddr = FwInfoTmp.mData.au32FwRegion[1].u32Start;
+                        g_u32LastSysFwWriteAddr = u32Fw2Start;
+                        if (u32LastWriteAddr < u32Fw2Start)
+                            u32LastWriteAddr = g_u32LastSysFwWriteAddr;
                         /* Write new firmware data to flash */
                         if (OTA_WriteNewFW(u32LastWriteAddr, (uint8_t *)&au32RawData + (u32ReadLen - u32OverFwSize), u32OverFwSize) != STATUS_SUCCESS)
                         {
@@ -621,17 +627,31 @@ int8_t UpdateNuBL3xFwFromSD(uint8_t u8BLxSel, uint32_t pu32Key3x[])
                         if (FwInfoTmp.mData.au32FwRegion[1].u32Size != 0)
                         {
                             /* Check write address of FW INFO is valid in system */
-                            if((i8Ret =_IsValidFlashRegion(FwInfoTmp.mData.au32FwRegion[1].u32Start, FwInfoTmp.mData.au32FwRegion[1].u32Size)) != 0)
+                            if((i8Ret =_IsValidFlashRegion(u32Fw2Start, u32Fw2Size)) != 0)
                                 return i8Ret;
 
-                            u32LastWriteAddr = FwInfoTmp.mData.au32FwRegion[1].u32Start;
+                            u32LastWriteAddr = u32Fw2Start;
                         }
                     }
                     /* Write new firmware data to flash */
-                    if (OTA_WriteNewFW(u32LastWriteAddr, (uint8_t *)&au32RawData, u32ReadLen) != STATUS_SUCCESS)
+                    if(((g_u32LastSysFwWriteAddr) + u32ReadLen) < u32Fw2Start + u32Fw2Size)
                     {
-                        printf("UpdateNuBL3xFwFromSD: write new NuBL3%d FW to flash error\n",((u8BLxSel&BIT0)==1)?2:3);
-                        return (-7);
+                        if (OTA_WriteNewFW(g_u32LastSysFwWriteAddr, (uint8_t *)&au32RawData, u32ReadLen) != STATUS_SUCCESS)
+                        {
+                            printf("UpdateNuBL3xFwFromSD: write new NuBL3%d FW to flash error\n",((u8BLxSel&BIT0)==1)?2:3);
+                            return (-7);
+                        }
+                    }
+                    else
+                    {
+                        if (u32Fw2Start + u32Fw2Size - (g_u32LastSysFwWriteAddr))
+                        {
+                            if (OTA_WriteNewFW(g_u32LastSysFwWriteAddr, (uint8_t *)&au32RawData, u32Fw2Start + u32Fw2Size - (g_u32LastSysFwWriteAddr)) != STATUS_SUCCESS)
+                            {
+                                printf("UpdateNuBL3xFwFromSD: write new NuBL3%d FW to flash error\n",((u8BLxSel&BIT0)==1)?2:3);
+                                return (-7);
+                            }
+                        }
                     }
                 }
             }
