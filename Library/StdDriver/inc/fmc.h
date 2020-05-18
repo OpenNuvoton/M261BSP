@@ -6,6 +6,8 @@
  * @brief    M261 Series Flash Memory Controller(FMC) driver header file
  *
  * @note
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
  *
  ******************************************************************************/

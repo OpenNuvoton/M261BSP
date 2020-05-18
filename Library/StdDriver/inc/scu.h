@@ -4,6 +4,8 @@
  * @brief    Secure Configuration Unit Driver Header
  *
  * @note
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
  *****************************************************************************/
 #ifndef __SCU_H__
