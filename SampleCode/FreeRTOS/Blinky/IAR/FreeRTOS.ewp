@@ -622,7 +622,7 @@
                 </option>
                 <option>
                     <name>AUserIncludes</name>
-                    <state></state>
+                    <state>$PROJ_DIR$\..</state>
                 </option>
                 <option>
                     <name>AExtraOptionsCheckV2</name>
