@@ -3,6 +3,8 @@
  * @version  V3.00
  * @brief    M261 series USCI_SPI driver header file
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * @copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 #ifndef __USCI_SPI_H__
@@ -137,8 +139,8 @@ extern "C"
   */
 #define USPI_SET_SS_HIGH(uspi) \
     do{ \
-        (uspi)->LINECTL |= (USPI_LINECTL_CTLOINV_Msk); \
-        (uspi)->PROTCTL = ((uspi)->PROTCTL & ~(USPI_PROTCTL_AUTOSS_Msk | USPI_PROTCTL_SS_Msk)); \
+        (uspi)->LINECTL &= ~USPI_LINECTL_CTLOINV_Msk; \
+        (uspi)->PROTCTL = (((uspi)->PROTCTL & ~USPI_PROTCTL_AUTOSS_Msk) | USPI_PROTCTL_SS_Msk); \
     }while(0)
 
 /**
@@ -150,7 +152,7 @@ extern "C"
   */
 #define USPI_SET_SS_LOW(uspi) \
     do{ \
-        (uspi)->LINECTL |= (USPI_LINECTL_CTLOINV_Msk); \
+        (uspi)->LINECTL |= USPI_LINECTL_CTLOINV_Msk; \
         (uspi)->PROTCTL = (((uspi)->PROTCTL & ~USPI_PROTCTL_AUTOSS_Msk) | USPI_PROTCTL_SS_Msk); \
     }while(0)
 

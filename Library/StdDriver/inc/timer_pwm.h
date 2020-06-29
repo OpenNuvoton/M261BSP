@@ -3,6 +3,8 @@
  * @version  V3.00
  * @brief    Timer PWM Controller(Timer PWM) driver header file
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * @copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
  *****************************************************************************/
 #ifndef __TIMER_PWM_H__

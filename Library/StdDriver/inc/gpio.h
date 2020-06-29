@@ -4,6 +4,8 @@
  * @brief    M261 series General Purpose I/O (GPIO) driver header file
  *
  * @note
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
  *
  ******************************************************************************/
