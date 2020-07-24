@@ -12,8 +12,12 @@
 #include "NuMicro.h"
 #include "VCOM_And_hid_keyboard.h"
 
-uint8_t volatile g_u8EP5Ready;
-uint32_t volatile g_u32OutToggle = 0;
+static uint8_t volatile s_u8EP5Ready;
+static uint32_t volatile s_u32OutToggle = 0;
+uint8_t volatile g_u8Suspend = 0;
+static uint8_t s_u8Idle = 0, s_u8Protocol = 0;
+
+void USBD_IRQHandler(void);
 
 void USBD_IRQHandler(void)
 {
@@ -56,10 +60,14 @@ void USBD_IRQHandler(void)
             /* Bus reset */
             USBD_ENABLE_USB();
             USBD_SwReset();
-            g_u32OutToggle = 0;
+            s_u32OutToggle = 0;
+            g_u8Suspend = 0;
         }
         if(u32State & USBD_STATE_SUSPEND)
         {
+            /* Enter power down to wait USB attached */
+            g_u8Suspend = 1;
+
             /* Enable USB but disable PHY */
             USBD_DISABLE_PHY();
         }
@@ -67,6 +75,7 @@ void USBD_IRQHandler(void)
         {
             /* Enable USB and enable PHY */
             USBD_ENABLE_USB();
+            g_u8Suspend = 0;
         }
     }
 
@@ -189,7 +198,7 @@ void EP2_Handler(void)
 void EP3_Handler(void)
 {
     /* Bulk OUT */
-    if(g_u32OutToggle == (USBD->EPSTS0 & USBD_EPSTS0_EPSTS3_Msk))
+    if(s_u32OutToggle == (USBD->EPSTS0 & USBD_EPSTS0_EPSTS3_Msk))
     {
         USBD_SET_PAYLOAD_LEN(EP3, EP3_MAX_PKT_SIZE);
     }
@@ -198,7 +207,7 @@ void EP3_Handler(void)
         g_u32RxSize = USBD_GET_PAYLOAD_LEN(EP3);
         g_pu8RxBuf = (uint8_t *)(USBD_BUF_BASE + USBD_GET_EP_BUF_ADDR(EP3));
 
-        g_u32OutToggle = USBD->EPSTS0 & USBD_EPSTS0_EPSTS3_Msk;
+        s_u32OutToggle = USBD->EPSTS0 & USBD_EPSTS0_EPSTS3_Msk;
         /* Set a flag to indicate bulk out ready */
         g_i8BulkOutReady = 1;
     }
@@ -206,7 +215,7 @@ void EP3_Handler(void)
 
 void EP5_Handler(void)  /* Interrupt IN handler */
 {
-    g_u8EP5Ready = 1;
+    s_u8EP5Ready = 1;
 }
 
 
@@ -283,12 +292,32 @@ void HID_ClassRequest(void)
                 break;
             }
             case GET_REPORT:
+//            {
+//             break;
+//            }
             case GET_IDLE:
+            {
+                USBD_SET_PAYLOAD_LEN(EP1, au8Buf[6]);
+                /* Data stage */
+                USBD_PrepareCtrlIn(&s_u8Idle, au8Buf[6]);
+                /* Status stage */
+                USBD_PrepareCtrlOut(0, 0);
+                break;
+            }
             case GET_PROTOCOL:
+            {
+                USBD_SET_PAYLOAD_LEN(EP1, au8Buf[6]);
+                /* Data stage */
+                USBD_PrepareCtrlIn(&s_u8Protocol, au8Buf[6]);
+                /* Status stage */
+                USBD_PrepareCtrlOut(0, 0);
+                break;
+            }
             default:
             {
                 /* Setup error, stall the device */
-                USBD_SetStall(0);
+                USBD_SetStall(EP0);
+                USBD_SetStall(EP1);
                 break;
             }
         }
@@ -303,7 +332,7 @@ void HID_ClassRequest(void)
                 if(au8Buf[4] == 0)    /* VCOM-1 */
                 {
                     g_u16CtrlSignal = au8Buf[3];
-                    g_u16CtrlSignal = (g_u16CtrlSignal << 8) | au8Buf[2];
+                    g_u16CtrlSignal = (uint16_t)(g_u16CtrlSignal << 8) | au8Buf[2];
                     //printf("RTS=%d  DTR=%d\n", (gCtrlSignal0 >> 1) & 1, gCtrlSignal0 & 1);
                 }
 
@@ -342,17 +371,26 @@ void HID_ClassRequest(void)
             }
             case SET_IDLE:
             {
+                s_u8Idle = au8Buf[3];
                 /* Status stage */
                 USBD_SET_DATA1(EP0);
                 USBD_SET_PAYLOAD_LEN(EP0, 0);
                 break;
             }
             case SET_PROTOCOL:
+            {
+                s_u8Protocol = au8Buf[2];
+                /* Status stage */
+                USBD_SET_DATA1(EP0);
+                USBD_SET_PAYLOAD_LEN(EP0, 0);
+                break;
+            }
             default:
             {
                 // Stall
                 /* Setup error, stall the device */
-                USBD_SetStall(0);
+                USBD_SetStall(EP0);
+                USBD_SetStall(EP1);
                 break;
             }
         }
@@ -433,7 +471,7 @@ void HID_UpdateKbData(void)
     uint32_t u32Key = 0xF;
     static uint32_t u32PreKey;
 
-    if(g_u8EP5Ready)
+    if(s_u8EP5Ready)
     {
         pu8Buf = (uint8_t *)(USBD_BUF_BASE + USBD_GET_EP_BUF_ADDR(EP5));
 

@@ -22,6 +22,11 @@
 
 #define CLK_PLLCTL_144MHz_HXT   (CLK_PLLCTL_PLLSRC_HXT  | CLK_PLLCTL_NR(2) | CLK_PLLCTL_NF( 12) | CLK_PLLCTL_NO_1)
 
+void SYS_Init(void);
+void UART0_Init(void);
+void PowerDown(void);
+int IsDebugFifoEmpty(void);
+
 void SYS_Init(void)
 {
     /*---------------------------------------------------------------------------------------------------------*/
@@ -95,6 +100,28 @@ void UART0_Init(void)
     UART_Open(UART0, 115200);
 }
 
+void PowerDown(void)
+{
+    /* Unlock protected registers */
+    SYS_UnlockReg();
+
+    printf("Enter power down ...\n");
+    while(!IsDebugFifoEmpty());
+
+    /* Wakeup Enable */
+    USBD_ENABLE_INT(USBD_INTEN_WKEN_Msk);
+
+    CLK_PowerDown();
+
+    /* Clear PWR_DOWN_EN if it is not clear by itself */
+    if(CLK->PWRCTL & CLK_PWRCTL_PDEN_Msk)
+        CLK->PWRCTL ^= CLK_PWRCTL_PDEN_Msk;
+
+    printf("device wakeup!\n");
+
+    /* Lock protected registers */
+    SYS_LockReg();
+}
 
 /*---------------------------------------------------------------------------------------------------------*/
 /*  Main Function                                                                                          */
@@ -102,7 +129,9 @@ void UART0_Init(void)
 int32_t main(void)
 {
     uint8_t au8Str[9];
+#if CRYSTAL_LESS
     uint32_t u32TrimInit;
+#endif
 
     /* Unlock protected registers */
     SYS_UnlockReg();
@@ -115,7 +144,7 @@ int32_t main(void)
 
     printf("\n");
     printf("+--------------------------------------------------------+\n");
-    printf("|        NuMicro USB composite device Sample Code        |\n");
+    printf("|        NuMicro USB Composite Device Sample Code        |\n");
     printf("|            USB Micro Printer + HID Transfer            |\n");
     printf("+--------------------------------------------------------+\n");
 
@@ -171,6 +200,10 @@ int32_t main(void)
             USBD->INTSTS = USBD_INTSTS_SOFIF_Msk;
         }
 #endif
+
+        /* Enter power down when USB suspend */
+        if(g_u8Suspend)
+            PowerDown();
 
         CLK_SysTickDelay(2000);   // delay
         if(++au8Str[1] > 0x39)

@@ -31,24 +31,30 @@ uint16_t g_u16CtrlSignal = 0;     /* BIT0: DTR(Data Terminal Ready) , BIT1: RTS(
 /* Global variables                                                                                        */
 /*---------------------------------------------------------------------------------------------------------*/
 /* UART0 */
-volatile uint8_t g_au8ComRbuf[RXBUFSIZE];
+static volatile uint8_t s_au8ComRbuf[RXBUFSIZE];
 volatile uint16_t g_u16ComRbytes = 0;
 volatile uint16_t g_u16ComRhead = 0;
 volatile uint16_t g_u16ComRtail = 0;
 
-volatile uint8_t g_au8ComTbuf[TXBUFSIZE];
+static volatile uint8_t s_au8ComTbuf[TXBUFSIZE];
 volatile uint16_t g_u16ComTbytes = 0;
 volatile uint16_t g_u16ComThead = 0;
 volatile uint16_t g_u16ComTtail = 0;
 
-uint8_t g_au8RxBuf[64] = {0};
+static uint8_t s_au8RxBuf[64] = {0};
 uint8_t *g_pu8RxBuf = 0;
 uint32_t g_u32RxSize = 0;
 uint32_t g_u32TxSize = 0;
 
 volatile int8_t g_i8BulkOutReady = 0;
 
+void SYS_Init(void);
+void UART0_Init(void);
+void UART0_IRQHandler(void);
+void PowerDown(void);
+int IsDebugFifoEmpty(void);
 /*--------------------------------------------------------------------------*/
+
 void SYS_Init(void)
 {
     /*---------------------------------------------------------------------------------------------------------*/
@@ -143,13 +149,13 @@ void UART0_IRQHandler(void)
         while(!(UART0->FIFOSTS & UART_FIFOSTS_RXEMPTY_Msk))
         {
             /* Get the character from UART Buffer */
-            u8InChar = UART0->DAT;
+            u8InChar = (uint8_t)UART0->DAT;
 
             /* Check if buffer full */
             if(g_u16ComRbytes < RXBUFSIZE)
             {
                 /* Enqueue the character */
-                g_au8ComRbuf[g_u16ComRtail++] = u8InChar;
+                s_au8ComRbuf[g_u16ComRtail++] = u8InChar;
                 if(g_u16ComRtail >= RXBUFSIZE)
                     g_u16ComRtail = 0;
                 g_u16ComRbytes++;
@@ -175,7 +181,7 @@ void UART0_IRQHandler(void)
 
             while(i32Size)
             {
-                u8InChar = g_au8ComTbuf[g_u16ComThead++];
+                u8InChar = s_au8ComTbuf[g_u16ComThead++];
                 UART0->DAT = u8InChar;
                 if(g_u16ComThead >= TXBUFSIZE)
                     g_u16ComThead = 0;
@@ -193,39 +199,39 @@ void UART0_IRQHandler(void)
 
 void VCOM_TransferData(void)
 {
-    int32_t i, i32Len;
+    uint32_t i, u32Len;
 
-    /* Check whether USB is ready for next packet or not*/
+    /* Check whether USB is ready for next packet or not */
     if(g_u32TxSize == 0)
     {
         /* Check whether we have new COM Rx data to send to USB or not */
         if(g_u16ComRbytes)
         {
-            i32Len = g_u16ComRbytes;
-            if(i32Len > EP2_MAX_PKT_SIZE)
-                i32Len = EP2_MAX_PKT_SIZE;
+            u32Len = g_u16ComRbytes;
+            if(u32Len > EP2_MAX_PKT_SIZE)
+                u32Len = EP2_MAX_PKT_SIZE;
 
-            for(i = 0; i < i32Len; i++)
+            for(i = 0; i < u32Len; i++)
             {
-                g_au8RxBuf[i] = g_au8ComRbuf[g_u16ComRhead++];
+                s_au8RxBuf[i] = s_au8ComRbuf[g_u16ComRhead++];
                 if(g_u16ComRhead >= RXBUFSIZE)
                     g_u16ComRhead = 0;
             }
 
             __set_PRIMASK(1);
-            g_u16ComRbytes -= i32Len;
+            g_u16ComRbytes -= u32Len;
             __set_PRIMASK(0);
 
-            g_u32TxSize = i32Len;
-            USBD_MemCopy((uint8_t *)(USBD_BUF_BASE + USBD_GET_EP_BUF_ADDR(EP2)), (uint8_t *)g_au8RxBuf, i32Len);
-            USBD_SET_PAYLOAD_LEN(EP2, i32Len);
+            g_u32TxSize = u32Len;
+            USBD_MemCopy((uint8_t *)(USBD_BUF_BASE + USBD_GET_EP_BUF_ADDR(EP2)), (uint8_t *)s_au8RxBuf, u32Len);
+            USBD_SET_PAYLOAD_LEN(EP2, u32Len);
         }
         else
         {
             /* Prepare a zero packet if previous packet size is EP2_MAX_PKT_SIZE and
                no more data to send at this moment to note Host the transfer has been done */
-            i32Len = USBD_GET_PAYLOAD_LEN(EP2);
-            if(i32Len == EP2_MAX_PKT_SIZE)
+            u32Len = USBD_GET_PAYLOAD_LEN(EP2);
+            if(u32Len == EP2_MAX_PKT_SIZE)
                 USBD_SET_PAYLOAD_LEN(EP2, 0);
         }
     }
@@ -235,7 +241,7 @@ void VCOM_TransferData(void)
     {
         for(i = 0; i < g_u32RxSize; i++)
         {
-            g_au8ComTbuf[g_u16ComTtail++] = g_pu8RxBuf[i];
+            s_au8ComTbuf[g_u16ComTtail++] = g_pu8RxBuf[i];
             if(g_u16ComTtail >= TXBUFSIZE)
                 g_u16ComTtail = 0;
         }
@@ -258,7 +264,7 @@ void VCOM_TransferData(void)
         if((UART0->INTEN & UART_INTEN_THREIEN_Msk) == 0)
         {
             /* Send one bytes out */
-            UART0->DAT = g_au8ComTbuf[g_u16ComThead++];
+            UART0->DAT = s_au8ComTbuf[g_u16ComThead++];
             if(g_u16ComThead >= TXBUFSIZE)
                 g_u16ComThead = 0;
 
@@ -272,12 +278,37 @@ void VCOM_TransferData(void)
     }
 }
 
+void PowerDown(void)
+{
+    /* Unlock protected registers */
+    SYS_UnlockReg();
+
+    printf("Enter power down ...\n");
+    while(!IsDebugFifoEmpty());
+
+    /* Wakeup Enable */
+    USBD_ENABLE_INT(USBD_INTEN_WKEN_Msk);
+
+    CLK_PowerDown();
+
+    /* Clear PWR_DOWN_EN if it is not clear by itself */
+    if(CLK->PWRCTL & CLK_PWRCTL_PDEN_Msk)
+        CLK->PWRCTL ^= CLK_PWRCTL_PDEN_Msk;
+
+    printf("device wakeup!\n");
+
+    /* Lock protected registers */
+    SYS_LockReg();
+}
+
 /*---------------------------------------------------------------------------------------------------------*/
 /*  Main Function                                                                                          */
 /*---------------------------------------------------------------------------------------------------------*/
 int32_t main(void)
 {
+#if CRYSTAL_LESS
     uint32_t u32TrimInit;
+#endif
 
     /* Unlock protected registers */
     SYS_UnlockReg();
@@ -346,6 +377,10 @@ int32_t main(void)
             USBD->INTSTS = USBD_INTSTS_SOFIF_Msk;
         }
 #endif
+
+        /* Enter power down when USB suspend */
+        if(g_u8Suspend)
+            PowerDown();
 
         VCOM_TransferData();
         HID_UpdateKbData();

@@ -11,8 +11,11 @@
 #include "NuMicro.h"
 #include "hid_touch.h"
 
+static uint8_t volatile s_u8EP2Ready = 0;
+uint8_t volatile g_u8Suspend = 0;
+static uint8_t s_u8Idle = 0, s_u8Protocol = 0;
 
-uint8_t volatile g_u8EP2Ready = 0;
+void USBD_IRQHandler(void);
 
 void USBD_IRQHandler(void)
 {
@@ -55,9 +58,13 @@ void USBD_IRQHandler(void)
             /* Bus reset */
             USBD_ENABLE_USB();
             USBD_SwReset();
+            g_u8Suspend = 0;
         }
         if(u32State & USBD_STATE_SUSPEND)
         {
+            /* Enter power down to wait USB attached */
+            g_u8Suspend = 1;
+
             /* Enable USB but disable PHY */
             USBD_DISABLE_PHY();
         }
@@ -65,6 +72,7 @@ void USBD_IRQHandler(void)
         {
             /* Enable USB and enable PHY */
             USBD_ENABLE_USB();
+            g_u8Suspend = 0;
         }
     }
 
@@ -168,7 +176,7 @@ void USBD_IRQHandler(void)
 
 void EP2_Handler(void)  /* Interrupt IN handler */
 {
-    g_u8EP2Ready = 1;
+    s_u8EP2Ready = 1;
 }
 
 
@@ -202,7 +210,7 @@ void HID_Init(void)
     USBD_SET_EP_BUF_ADDR(EP2, EP2_BUF_BASE);
 
     /* Start to send IN data */
-    g_u8EP2Ready = 1;
+    s_u8EP2Ready = 1;
 }
 
 void HID_ClassRequest(void)
@@ -240,22 +248,34 @@ void HID_ClassRequest(void)
                 {
                     // DBG_PRINTF(" - Unknown\n");
                     /* Setup error, stall the device */
-                    USBD_SetStall(0);
+                    USBD_SetStall(EP0);
+                    USBD_SetStall(EP1);
                 }
                 break;
             }
             case GET_IDLE:
-//             {
-//                 break;
-//             }
+            {
+                USBD_SET_PAYLOAD_LEN(EP1, au8Buf[6]);
+                /* Data stage */
+                USBD_PrepareCtrlIn(&s_u8Idle, au8Buf[6]);
+                /* Status stage */
+                USBD_PrepareCtrlOut(0, 0);
+                break;
+            }
             case GET_PROTOCOL:
-//            {
-//                break;
-//            }
+            {
+                USBD_SET_PAYLOAD_LEN(EP1, au8Buf[6]);
+                /* Data stage */
+                USBD_PrepareCtrlIn(&s_u8Protocol, au8Buf[6]);
+                /* Status stage */
+                USBD_PrepareCtrlOut(0, 0);
+                break;
+            }
             default:
             {
                 /* Setup error, stall the device */
-                USBD_SetStall(0);
+                USBD_SetStall(EP0);
+                USBD_SetStall(EP1);
                 break;
             }
         }
@@ -283,20 +303,26 @@ void HID_ClassRequest(void)
             }
             case SET_IDLE:
             {
+                s_u8Idle = au8Buf[3];
                 /* Status stage */
                 USBD_SET_DATA1(EP0);
                 USBD_SET_PAYLOAD_LEN(EP0, 0);
                 break;
             }
             case SET_PROTOCOL:
-//             {
-//                 break;
-//             }
+            {
+                s_u8Protocol = au8Buf[2];
+                /* Status stage */
+                USBD_SET_DATA1(EP0);
+                USBD_SET_PAYLOAD_LEN(EP0, 0);
+                break;
+            }
             default:
             {
                 // Stall
                 /* Setup error, stall the device */
-                USBD_SetStall(0);
+                USBD_SetStall(EP0);
+                USBD_SetStall(EP1);
                 break;
             }
         }
@@ -304,14 +330,14 @@ void HID_ClassRequest(void)
 }
 
 /* two lines demo in Paint */
-uint32_t u32ReportCount = 0;
-uint8_t u8IsX1Send04 = 0, u8IsX2Send04 = 0;
+static uint32_t s_u32ReportCount = 0;
+static uint8_t s_u8IsX1Send04 = 0;
 void HID_UpdateTouchData(void)
 {
     uint8_t *pu8Buf;
     static uint16_t u16X1 = 0x01f0, u16Y1 = 0x0100;
 
-    if(g_u8EP2Ready)
+    if(s_u8EP2Ready)
     {
 
         pu8Buf = (uint8_t *)(USBD_BUF_BASE + USBD_GET_EP_BUF_ADDR(EP2));
@@ -322,11 +348,11 @@ void HID_UpdateTouchData(void)
         pu8Buf[8] = 1;
 
 
-        u32ReportCount++;
+        s_u32ReportCount++;
 
         if((u16X1 >= 0x0200) && (u16X1 <= 0x0400))    // touchDown
         {
-            u8IsX1Send04 = 1;
+            s_u8IsX1Send04 = 1;
 
             pu8Buf[1] = 0x07;
             pu8Buf[3] = u16X1 & 0xff;
@@ -340,9 +366,9 @@ void HID_UpdateTouchData(void)
             pu8Buf[12] = ((u16Y1 + 0x20) >> 8) & 0xff;
             pu8Buf[13] = 2;
         }
-        else if(u8IsX1Send04)      // touchUp
+        else if(s_u8IsX1Send04)      // touchUp
         {
-            u8IsX1Send04 = 0;
+            s_u8IsX1Send04 = 0;
             pu8Buf[1] = 0x04;
             pu8Buf[3] = 0x00;
             pu8Buf[4] = 0x04;
@@ -385,7 +411,7 @@ void HID_UpdateTouchData(void)
             pu8Buf[13] = 0;
         }
 
-        if((u32ReportCount % 6) == 0)
+        if((s_u32ReportCount % 6) == 0)
             u16X1 += 0x3;
 
         if(u16X1 > 0x0400)
@@ -396,7 +422,7 @@ void HID_UpdateTouchData(void)
                 u16Y1 = 0x0100;
         }
 
-        g_u8EP2Ready = 0;
+        s_u8EP2Ready = 0;
         USBD_SET_PAYLOAD_LEN(EP2, 14);
     }
 }

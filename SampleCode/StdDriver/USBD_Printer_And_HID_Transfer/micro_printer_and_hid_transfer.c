@@ -10,7 +10,11 @@
 #include "NuMicro.h"
 #include "micro_printer_and_hid_transfer.h"
 
-uint32_t volatile g_u32OutToggle = 0;
+static uint32_t volatile s_u32OutToggle = 0;
+uint8_t volatile g_u8Suspend = 0;
+static uint8_t s_u8Idle = 0, s_u8Protocol = 0;
+
+void USBD_IRQHandler(void);
 
 /*--------------------------------------------------------------------------*/
 void USBD_IRQHandler(void)
@@ -54,10 +58,14 @@ void USBD_IRQHandler(void)
             /* Bus reset */
             USBD_ENABLE_USB();
             USBD_SwReset();
-            g_u32OutToggle = 0;
+            s_u32OutToggle = 0;
+            g_u8Suspend = 0;
         }
         if(u32State & USBD_STATE_SUSPEND)
         {
+            /* Enter power down to wait USB attached */
+            g_u8Suspend = 1;
+
             /* Enable USB but disable PHY */
             USBD_DISABLE_PHY();
         }
@@ -65,6 +73,7 @@ void USBD_IRQHandler(void)
         {
             /* Enable USB and enable PHY */
             USBD_ENABLE_USB();
+            g_u8Suspend = 0;
         }
     }
 
@@ -112,7 +121,7 @@ void USBD_IRQHandler(void)
         {
             /* Clear event flag */
             USBD_CLR_INT_FLAG(USBD_INTSTS_EP3);
-            if(g_u32OutToggle == (USBD->EPSTS0 & USBD_EPSTS0_EPSTS3_Msk))
+            if(s_u32OutToggle == (USBD->EPSTS0 & USBD_EPSTS0_EPSTS3_Msk))
             {
                 USBD_SET_PAYLOAD_LEN(EP3, EP3_MAX_PKT_SIZE);
             }
@@ -120,7 +129,7 @@ void USBD_IRQHandler(void)
             {
                 // Bulk Out -> receive printer data
                 PTR_Data_Receive();
-                g_u32OutToggle = USBD->EPSTS0 & USBD_EPSTS0_EPSTS3_Msk;
+                s_u32OutToggle = USBD->EPSTS0 & USBD_EPSTS0_EPSTS3_Msk;
             }
         }
 
@@ -267,10 +276,29 @@ void PTR_ClassRequest(void)
                 USBD_PrepareCtrlOut(0, 0);
                 break;
             }
+            case GET_IDLE:
+            {
+                USBD_SET_PAYLOAD_LEN(EP1, au8Buf[6]);
+                /* Data stage */
+                USBD_PrepareCtrlIn(&s_u8Idle, au8Buf[6]);
+                /* Status stage */
+                USBD_PrepareCtrlOut(0, 0);
+                break;
+            }
+            case GET_PROTOCOL:
+            {
+                USBD_SET_PAYLOAD_LEN(EP1, au8Buf[6]);
+                /* Data stage */
+                USBD_PrepareCtrlIn(&s_u8Protocol, au8Buf[6]);
+                /* Status stage */
+                USBD_PrepareCtrlOut(0, 0);
+                break;
+            }
             default:
             {
                 /* Setup error, stall the device */
-                USBD_SetStall(0);
+                USBD_SetStall(EP0);
+                USBD_SetStall(EP1);
                 break;
             }
         }
@@ -292,20 +320,26 @@ void PTR_ClassRequest(void)
             }
             case SET_IDLE:
             {
+                s_u8Idle = au8Buf[3];
                 /* Status stage */
                 USBD_SET_DATA1(EP0);
                 USBD_SET_PAYLOAD_LEN(EP0, 0);
                 break;
             }
             case SET_PROTOCOL:
-//            {
-//                break;
-//            }
+            {
+                s_u8Protocol = au8Buf[2];
+                /* Status stage */
+                USBD_SET_DATA1(EP0);
+                USBD_SET_PAYLOAD_LEN(EP0, 0);
+                break;
+            }
             default:
             {
                 // Stall
                 /* Setup error, stall the device */
-                USBD_SetStall(0);
+                USBD_SetStall(EP0);
+                USBD_SetStall(EP1);
                 break;
             }
         }
@@ -318,6 +352,8 @@ void PTR_Data_Receive(void)
     uint8_t *pu8Buf = (uint8_t *)(USBD_BUF_BASE + USBD_GET_EP_BUF_ADDR(EP3));
     uint32_t u32Size = USBD_GET_PAYLOAD_LEN(EP3);
 
+    (void)pu8Buf;
+    (void)u32Size;
     /* trigger next OUT data */
     USBD_SET_PAYLOAD_LEN(EP3, EP3_MAX_PKT_SIZE);
 }
@@ -347,11 +383,20 @@ typedef struct
     uint32_t u32Checksum;
 } __attribute__((packed)) CMD_T;
 
-CMD_T gCmd;
+static CMD_T s_Cmd;
 
 static uint8_t  g_au8PageBuff[PAGE_SIZE] = {0};    /* Page buffer to upload/download through HID report */
 static uint32_t g_u32BytesInPageBuf = 0;          /* The bytes of data in g_au8PageBuff */
 static uint8_t  g_au8TestPages[TEST_PAGES * PAGE_SIZE] = {0};    /* Test pages to upload/download through HID report */
+static int32_t s_i32CmdTestCnt = 0;
+
+int32_t HID_CmdEraseSectors(CMD_T *pCmd);
+int32_t HID_CmdReadPages(CMD_T *pCmd);
+int32_t HID_CmdWritePages(CMD_T *pCmd);
+int32_t HID_CmdTest(CMD_T *pCmd);
+uint32_t CalCheckSum(uint8_t *pu8Buf, uint32_t u32Size);
+int32_t ProcessCommand(uint8_t *pu8Buffer, uint32_t u32BufferLen);
+
 
 int32_t HID_CmdEraseSectors(CMD_T *pCmd)
 {
@@ -421,14 +466,13 @@ int32_t HID_CmdWritePages(CMD_T *pCmd)
 }
 
 
-int32_t gi32CmdTestCnt = 0;
 int32_t HID_CmdTest(CMD_T *pCmd)
 {
     int32_t i;
     uint8_t *pu8;
 
     pu8 = (uint8_t *)pCmd;
-    printf("Get test command #%d (%d bytes)\n", gi32CmdTestCnt++, pCmd->u8Size);
+    printf("Get test command #%d (%d bytes)\n", s_i32CmdTestCnt++, pCmd->u8Size);
     for(i = 0; i < pCmd->u8Size; i++)
     {
         if((i & 0xF) == 0)
@@ -470,41 +514,41 @@ int32_t ProcessCommand(uint8_t *pu8Buffer, uint32_t u32BufferLen)
     uint32_t u32Sum;
 
 
-    USBD_MemCopy((uint8_t *)&gCmd, pu8Buffer, u32BufferLen);
+    USBD_MemCopy((uint8_t *)&s_Cmd, pu8Buffer, u32BufferLen);
 
     /* Check size */
-    if((gCmd.u8Size > sizeof(gCmd)) || (gCmd.u8Size > u32BufferLen))
+    if((s_Cmd.u8Size > sizeof(s_Cmd)) || (s_Cmd.u8Size > u32BufferLen))
         return -1;
 
     /* Check signature */
-    if(gCmd.u32Signature != HID_CMD_SIGNATURE)
+    if(s_Cmd.u32Signature != HID_CMD_SIGNATURE)
         return -1;
 
     /* Calculate checksum & check it */
-    u32Sum = CalCheckSum((uint8_t *)&gCmd, gCmd.u8Size);
-    if(u32Sum != gCmd.u32Checksum)
+    u32Sum = CalCheckSum((uint8_t *)&s_Cmd, s_Cmd.u8Size);
+    if(u32Sum != s_Cmd.u32Checksum)
         return -1;
 
-    switch(gCmd.u8Cmd)
+    switch(s_Cmd.u8Cmd)
     {
         case HID_CMD_ERASE:
         {
-            HID_CmdEraseSectors(&gCmd);
+            HID_CmdEraseSectors(&s_Cmd);
             break;
         }
         case HID_CMD_READ:
         {
-            HID_CmdReadPages(&gCmd);
+            HID_CmdReadPages(&s_Cmd);
             break;
         }
         case HID_CMD_WRITE:
         {
-            HID_CmdWritePages(&gCmd);
+            HID_CmdWritePages(&s_Cmd);
             break;
         }
         case HID_CMD_TEST:
         {
-            HID_CmdTest(&gCmd);
+            HID_CmdTest(&s_Cmd);
             break;
         }
         default:
@@ -522,11 +566,12 @@ void HID_GetOutReport(uint8_t *pu8EpBuf, uint32_t u32Size)
     uint32_t u32Pages;
     uint32_t u32PageCnt;
 
+    (void)u32Size;
     /* Get command information */
-    u8Cmd        = gCmd.u8Cmd;
-    u32StartPage = gCmd.u32Arg1;
-    u32Pages     = gCmd.u32Arg2;
-    u32PageCnt   = gCmd.u32Signature; /* The signature word is used to count pages */
+    u8Cmd        = s_Cmd.u8Cmd;
+    u32StartPage = s_Cmd.u32Arg1;
+    u32Pages     = s_Cmd.u32Arg2;
+    u32PageCnt   = s_Cmd.u32Signature; /* The signature word is used to count pages */
 
 
     /* Check if it is in the data phase of write command */
@@ -558,13 +603,13 @@ void HID_GetOutReport(uint8_t *pu8EpBuf, uint32_t u32Size)
         }
 
         /* Update command status */
-        gCmd.u8Cmd        = u8Cmd;
-        gCmd.u32Signature = u32PageCnt;
+        s_Cmd.u8Cmd        = u8Cmd;
+        s_Cmd.u32Signature = u32PageCnt;
     }
     else
     {
         /* Check and process the command packet */
-        if(ProcessCommand(pu8EpBuf, sizeof(gCmd)))
+        if(ProcessCommand(pu8EpBuf, sizeof(s_Cmd)))
         {
             printf("Unknown HID command!\n");
         }
@@ -579,10 +624,10 @@ void HID_SetInReport(void)
     uint8_t *pu8Ptr;
     uint8_t u8Cmd;
 
-    u8Cmd        = gCmd.u8Cmd;
-    u32StartPage = gCmd.u32Arg1;
-    u32TotalPages = gCmd.u32Arg2;
-    u32PageCnt   = gCmd.u32Signature;
+    u8Cmd        = s_Cmd.u8Cmd;
+    u32StartPage = s_Cmd.u32Arg1;
+    u32TotalPages = s_Cmd.u32Arg2;
+    u32PageCnt   = s_Cmd.u32Signature;
 
     /* Check if it is in data phase of read command */
     if(u8Cmd == HID_CMD_READ)
@@ -617,6 +662,6 @@ void HID_SetInReport(void)
         }
     }
 
-    gCmd.u8Cmd        = u8Cmd;
-    gCmd.u32Signature = u32PageCnt;
+    s_Cmd.u8Cmd        = u8Cmd;
+    s_Cmd.u32Signature = u32PageCnt;
 }

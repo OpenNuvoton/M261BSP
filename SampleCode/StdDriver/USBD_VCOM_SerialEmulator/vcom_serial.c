@@ -11,7 +11,10 @@
 #include "NuMicro.h"
 #include "vcom_serial.h"
 
-uint32_t volatile g_u32OutToggle = 0;
+static uint32_t volatile s_u32OutToggle = 0;
+uint8_t volatile g_u8Suspend = 0;
+
+void USBD_IRQHandler(void);
 
 /*--------------------------------------------------------------------------*/
 void USBD_IRQHandler(void)
@@ -55,10 +58,14 @@ void USBD_IRQHandler(void)
             /* Bus reset */
             USBD_ENABLE_USB();
             USBD_SwReset();
-            g_u32OutToggle = 0;
+            s_u32OutToggle = 0;
+            g_u8Suspend = 0;
         }
         if(u32State & USBD_STATE_SUSPEND)
         {
+            /* Enter power down to wait USB attached */
+            g_u8Suspend = 1;
+
             /* Enable USB but disable PHY */
             USBD_DISABLE_PHY();
         }
@@ -66,6 +73,7 @@ void USBD_IRQHandler(void)
         {
             /* Enable USB and enable PHY */
             USBD_ENABLE_USB();
+            g_u8Suspend = 0;
         }
     }
 
@@ -187,7 +195,7 @@ void EP2_Handler(void)
 void EP3_Handler(void)
 {
     /* Bulk OUT */
-    if(g_u32OutToggle == (USBD->EPSTS0 & USBD_EPSTS0_EPSTS3_Msk))
+    if(s_u32OutToggle == (USBD->EPSTS0 & USBD_EPSTS0_EPSTS3_Msk))
     {
         USBD_SET_PAYLOAD_LEN(EP3, EP3_MAX_PKT_SIZE);
     }
@@ -196,7 +204,7 @@ void EP3_Handler(void)
         g_u32RxSize = USBD_GET_PAYLOAD_LEN(EP3);
         g_pu8RxBuf = (uint8_t *)(USBD_BUF_BASE + USBD_GET_EP_BUF_ADDR(EP3));
 
-        g_u32OutToggle = USBD->EPSTS0 & USBD_EPSTS0_EPSTS3_Msk;
+        s_u32OutToggle = USBD->EPSTS0 & USBD_EPSTS0_EPSTS3_Msk;
         /* Set a flag to indicate bulk out ready */
         g_i8BulkOutReady = 1;
     }
@@ -290,7 +298,7 @@ void VCOM_ClassRequest(void)
                 if(au8Buf[4] == 0)    /* VCOM-1 */
                 {
                     g_u16CtrlSignal = au8Buf[3];
-                    g_u16CtrlSignal = (g_u16CtrlSignal << 8) | au8Buf[2];
+                    g_u16CtrlSignal = (uint16_t)(g_u16CtrlSignal << 8) | au8Buf[2];
                     //printf("RTS=%d  DTR=%d\n", (g_u16CtrlSignal0 >> 1) & 1, g_u16CtrlSignal0 & 1);
                 }
 

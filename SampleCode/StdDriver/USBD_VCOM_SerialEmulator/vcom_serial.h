@@ -10,7 +10,7 @@
 
 /* Define the vendor id and product id */
 #define USBD_VID        0x0416
-#define USBD_PID        0x5011
+#define USBD_PID        0xB002
 
 /*!<Define CDC Class Specific Request */
 #define SET_LINE_CODE           0x20
@@ -57,6 +57,8 @@
   5   bParityType  Parity:    0 - None, 1 - Odd, 2 - Even, 3 - Mark, 4 - Space
   6   bDataBits    Data bits: 5, 6, 7, 8, 16  */
 
+#pragma pack(push)
+#pragma pack(1)
 typedef struct
 {
     uint32_t  u32DTERate;     /* Baud rate    */
@@ -64,6 +66,7 @@ typedef struct
     uint8_t   u8ParityType;   /* parity       */
     uint8_t   u8DataBits;     /* data bits    */
 } STR_VCOM_LINE_CODING;
+#pragma pack(pop)
 
 /*-------------------------------------------------------------*/
 extern volatile int8_t g_i8BulkOutReady;
@@ -78,6 +81,8 @@ extern volatile uint16_t g_u16ComTtail;
 extern uint8_t *g_pu8RxBuf;
 extern uint32_t g_u32RxSize;
 extern uint32_t g_u32TxSize;
+
+extern uint8_t volatile g_u8Suspend;
 
 /*-------------------------------------------------------------*/
 void VCOM_Init(void);

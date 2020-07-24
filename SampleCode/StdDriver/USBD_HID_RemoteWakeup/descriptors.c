@@ -10,7 +10,7 @@
 #include "hid_mouse.h"
 
 /*!<USB HID Report Descriptor */
-const uint8_t HID_MouseReportDescriptor[] =
+static uint8_t s_au8HIDMouseReportDescriptor[] =
 {
     0x05, 0x01,     /* Usage Page(Generic Desktop Controls) */
     0x09, 0x02,     /* Usage(Mouse) */
@@ -46,11 +46,15 @@ const uint8_t HID_MouseReportDescriptor[] =
 
 /*----------------------------------------------------------------------------*/
 /*!<USB Device Descriptor */
-const uint8_t gu8DeviceDescriptor[] =
+static uint8_t s_au8DeviceDescriptor[] =
 {
     LEN_DEVICE,     /* bLength */
     DESC_DEVICE,    /* bDescriptorType */
+#ifdef SUPPORT_LPM
+    0x01, 0x02,     /* bcdUSB >= 0x0201 to support LPM */
+#else
     0x10, 0x01,     /* bcdUSB */
+#endif
     0x00,           /* bDeviceClass */
     0x00,           /* bDeviceSubClass */
     0x00,           /* bDeviceProtocol */
@@ -69,7 +73,7 @@ const uint8_t gu8DeviceDescriptor[] =
 };
 
 /*!<USB Configure Descriptor */
-const uint8_t gu8ConfigDescriptor[] =
+static uint8_t s_au8ConfigDescriptor[] =
 {
     LEN_CONFIG,     /* bLength */
     DESC_CONFIG,    /* bDescriptorType */
@@ -101,8 +105,8 @@ const uint8_t gu8ConfigDescriptor[] =
     0x01,           /* Number of HID class descriptors to follow. */
     DESC_HID_RPT,   /* Descriptor type. */
     /* Total length of report descriptor. */
-    sizeof(HID_MouseReportDescriptor) & 0x00FF,
-    (sizeof(HID_MouseReportDescriptor) & 0xFF00) >> 8,
+    sizeof(s_au8HIDMouseReportDescriptor) & 0x00FF,
+    (sizeof(s_au8HIDMouseReportDescriptor) & 0xFF00) >> 8,
 
     /* EP Descriptor: interrupt in. */
     LEN_ENDPOINT,   /* bLength */
@@ -116,7 +120,7 @@ const uint8_t gu8ConfigDescriptor[] =
 };
 
 /*!<USB Language String Descriptor */
-const uint8_t gu8StringLang[4] =
+static uint8_t s_au8StringLang[4] =
 {
     4,              /* bLength */
     DESC_STRING,    /* bDescriptorType */
@@ -124,7 +128,7 @@ const uint8_t gu8StringLang[4] =
 };
 
 /*!<USB Vendor String Descriptor */
-const uint8_t gu8VendorStringDesc[] =
+static uint8_t s_au8VendorStringDesc[] =
 {
     16,
     DESC_STRING,
@@ -132,15 +136,16 @@ const uint8_t gu8VendorStringDesc[] =
 };
 
 /*!<USB Product String Descriptor */
-const uint8_t gu8ProductStringDesc[] =
+static uint8_t s_au8ProductStringDesc[] =
 {
     20,
     DESC_STRING,
     'H', 0, 'I', 0, 'D', 0, ' ', 0, 'M', 0, 'o', 0, 'u', 0, 's', 0, 'e', 0
 };
 
+#ifdef SUPPORT_LPM
 /*!<USB BOS Descriptor */
-const uint8_t gu8BOSDescriptor[] =
+static uint8_t s_au8BOSDescriptor[] =
 {
     LEN_BOS,        /* bLength */
     DESC_BOS,       /* bDescriptorType */
@@ -152,33 +157,42 @@ const uint8_t gu8BOSDescriptor[] =
     /* Device Capability */
     LEN_BOSCAP,     /* bLength */
     DESC_CAPABILITY,/* bDescriptorType */
-    CAP_USB20_EXT,  /* bDevCapabilityType */
-    0x02, 0x00, 0x00, 0x00  /* bmAttributes */
+    CAP_USB20_EXT,  /* bDevCapabilityType, 0x02 is USB 2.0 Extension */
+    0x06, 0x04, 0x00, 0x00  /* bmAttributes, 32 bits */
+                            /* bit 0 : Reserved. Must 0. */
+                            /* bit 1 : 1 to support LPM. */
+                            /* bit 2 : 1 to support BSL & Alternat HIRD. */
+                            /* bit 3 : 1 to recommend Baseline BESL. */
+                            /* bit 4 : 1 to recommand Deep BESL. */
+                            /* bit 11:8 : Recommend Baseline BESL value. Ignore by bit3 is zero. */
+                            /* bit 15:12 : Recommend Deep BESL value. Ignore by bit4 is zero. */
+                            /* bit 31:16 : Reserved. Must 0. */
 };
+#endif
 
-const uint8_t *gpu8UsbString[4] =
+static uint8_t *s_apu8UsbString[4] =
 {
-    gu8StringLang,
-    gu8VendorStringDesc,
-    gu8ProductStringDesc,
+    s_au8StringLang,
+    s_au8VendorStringDesc,
+    s_au8ProductStringDesc,
     0
 };
 
-const uint8_t *gpu8UsbHidReport[3] =
+static uint8_t *s_apu8UsbHidReport[3] =
 {
-    HID_MouseReportDescriptor,
+    s_au8HIDMouseReportDescriptor,
     NULL,
     NULL
 };
 
-const uint32_t gu32UsbHidReportLen[3] =
+static uint32_t s_au32UsbHidReportLen[3] =
 {
-    sizeof(HID_MouseReportDescriptor),
+    sizeof(s_au8HIDMouseReportDescriptor),
     0,
     0
 };
 
-const uint32_t gu32ConfigHidDescIdx[3] =
+static uint32_t s_au32ConfigHidDescIdx[3] =
 {
     (LEN_CONFIG + LEN_INTERFACE),
     0,
@@ -187,13 +201,17 @@ const uint32_t gu32ConfigHidDescIdx[3] =
 
 const S_USBD_INFO_T gsInfo =
 {
-    (uint8_t *)gu8DeviceDescriptor,
-    (uint8_t *)gu8ConfigDescriptor,
-    (uint8_t **)gpu8UsbString,
-    (uint8_t **)gpu8UsbHidReport,
-    (uint8_t *)gu8BOSDescriptor,
-    (uint32_t *)gu32UsbHidReportLen,
-    (uint32_t *)gu32ConfigHidDescIdx
+    (uint8_t *)s_au8DeviceDescriptor,
+    (uint8_t *)s_au8ConfigDescriptor,
+    (uint8_t **)s_apu8UsbString,
+    (uint8_t **)s_apu8UsbHidReport,
+#ifdef SUPPORT_LPM
+    (uint8_t *)s_au8BOSDescriptor,
+#else
+    NULL,
+#endif
+    (uint32_t *)s_au32UsbHidReportLen,
+    (uint32_t *)s_au32ConfigHidDescIdx
 };
 
 

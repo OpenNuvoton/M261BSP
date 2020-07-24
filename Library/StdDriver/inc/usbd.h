@@ -4,13 +4,12 @@
  * @brief    M261 series USBD driver header file
  *
  * SPDX-License-Identifier: Apache-2.0
- *
- * @copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
+ * @copyright (C) 2019-2020 Nuvoton Technology Corp. All rights reserved.
  ******************************************************************************/
 #ifndef __USBD_H__
 #define __USBD_H__
 
-//#define SUPPORT_LPM     // define to support LPM
+#define SUPPORT_LPM     // define to support LPM
 
 #ifdef __cplusplus
 extern "C"
@@ -29,6 +28,7 @@ extern "C"
 /** @addtogroup USBD_EXPORTED_STRUCTS USBD Exported Structs
   @{
 */
+
 typedef struct s_usbd_info
 {
     uint8_t *gu8DevDesc;            /*!< Pointer for USB Device Descriptor          */
@@ -46,11 +46,10 @@ extern const S_USBD_INFO_T gsInfo;
 /*@}*/ /* end of group USBD_EXPORTED_STRUCTS */
 
 
-
-
 /** @addtogroup USBD_EXPORTED_CONSTANTS USBD Exported Constants
   @{
 */
+
 #define USBD_BUF_BASE      ((uint32_t)(USBD_BASE+0x100UL))  /*!< USBD buffer base address */
 #define USBD_MAX_EP        12UL  /*!< Total EP number */
 
@@ -173,8 +172,8 @@ extern const S_USBD_INFO_T gsInfo;
 #define USBD_STATE_SUSPEND      USBD_ATTR_SUSPEND_Msk       /*!< USB Bus Suspend */
 #define USBD_STATE_RESUME       USBD_ATTR_RESUME_Msk        /*!< USB Bus Resume */
 #define USBD_STATE_TIMEOUT      USBD_ATTR_TOUT_Msk          /*!< USB Bus Timeout */
-#define USBD_STATE_L1SUSPEND    USBD_ATTR_L1SUSPEND_Msk     /*!< USB Bus L1SUSPEND  */
-#define USBD_STATE_L1RESUME     USBD_ATTR_L1RESUME_Msk      /*!< USB Bus L1RESUME   */
+#define USBD_STATE_L1SUSPEND    USBD_ATTR_L1SUSPEND_Msk     /*!< USB Bus L1SUSPEND */
+#define USBD_STATE_L1RESUME     USBD_ATTR_L1RESUME_Msk      /*!< USB Bus L1RESUME */
 
 #define USBD_CFGP_SSTALL        USBD_CFGP_SSTALL_Msk        /*!< Set Stall */
 #define USBD_CFG_CSTALL         USBD_CFG_CSTALL_Msk         /*!< Clear Stall */
@@ -183,7 +182,6 @@ extern const S_USBD_INFO_T gsInfo;
 #define USBD_CFG_EPMODE_OUT     (1UL << USBD_CFG_STATE_Pos)/*!< Out Endpoint */
 #define USBD_CFG_EPMODE_IN      (2UL << USBD_CFG_STATE_Pos)/*!< In Endpoint */
 #define USBD_CFG_TYPE_ISO       (1UL << USBD_CFG_ISOCH_Pos)/*!< Isochronous */
-
 
 /*@}*/ /* end of group USBD_EXPORTED_CONSTANTS */
 
@@ -204,7 +202,6 @@ extern const S_USBD_INFO_T gsInfo;
   */
 #define USBD_Maximum(a,b)        ((a)>(b) ? (a) : (b))
 
-
 /**
   * @brief      Compare two input numbers and return minimum one
   *
@@ -216,7 +213,6 @@ extern const S_USBD_INFO_T gsInfo;
   * @details    If a < b, then return a. Otherwise, return b.
   */
 #define USBD_Minimum(a,b)        ((a)<(b) ? (a) : (b))
-
 
 /**
   * @brief    Enable USB
@@ -564,7 +560,6 @@ __STATIC_INLINE void USBD_MemCopy(uint8_t dest[], uint8_t src[], uint32_t size)
     }
 }
 
-
 /**
   * @brief       Set USB endpoint stall state
   *
@@ -580,18 +575,15 @@ __STATIC_INLINE void USBD_SetStall(uint8_t epnum)
     uint32_t u32CfgAddr;
     uint32_t u32Cfg;
     uint32_t i;
-    USBD_T *pUSBD;
-
-    pUSBD = USBD;
 
     for(i = 0UL; i < USBD_MAX_EP; i++)
     {
-        u32CfgAddr = (uint32_t)(i << 4) + (uint32_t)&pUSBD->EP[0].CFG; /* USBD_CFG0 */
+        u32CfgAddr = (uint32_t)(i << 4) + (uint32_t)&USBD->EP[0].CFG; /* USBD_CFG0 */
         u32Cfg = *((__IO uint32_t *)(u32CfgAddr));
 
         if((u32Cfg & 0xFUL) == epnum)
         {
-            u32CfgAddr = (uint32_t)(i << 4) + (uint32_t)&pUSBD->EP[0].CFGP; /* USBD_CFGP0 */
+            u32CfgAddr = (uint32_t)(i << 4) + (uint32_t)&USBD->EP[0].CFGP; /* USBD_CFGP0 */
             u32Cfg = *((__IO uint32_t *)(u32CfgAddr));
 
             *((__IO uint32_t *)(u32CfgAddr)) = (u32Cfg | USBD_CFGP_SSTALL);
@@ -614,18 +606,15 @@ __STATIC_INLINE void USBD_ClearStall(uint8_t epnum)
     uint32_t u32CfgAddr;
     uint32_t u32Cfg;
     uint32_t i;
-    USBD_T *pUSBD;
-
-    pUSBD = USBD;
 
     for(i = 0UL; i < USBD_MAX_EP; i++)
     {
-        u32CfgAddr = (uint32_t)(i << 4) + (uint32_t)&pUSBD->EP[0].CFG; /* USBD_CFG0 */
+        u32CfgAddr = (uint32_t)(i << 4) + (uint32_t)&USBD->EP[0].CFG; /* USBD_CFG0 */
         u32Cfg = *((__IO uint32_t *)(u32CfgAddr));
 
         if((u32Cfg & 0xFUL) == epnum)
         {
-            u32CfgAddr = (uint32_t)(i << 4) + (uint32_t)&pUSBD->EP[0].CFGP; /* USBD_CFGP0 */
+            u32CfgAddr = (uint32_t)(i << 4) + (uint32_t)&USBD->EP[0].CFGP; /* USBD_CFGP0 */
             u32Cfg = *((__IO uint32_t *)(u32CfgAddr));
 
             *((__IO uint32_t *)(u32CfgAddr)) = (u32Cfg & ~USBD_CFGP_SSTALL);
@@ -647,21 +636,18 @@ __STATIC_INLINE void USBD_ClearStall(uint8_t epnum)
   */
 __STATIC_INLINE uint32_t USBD_GetStall(uint8_t epnum)
 {
-    uint32_t u32CfgAddr;
+    uint32_t u32CfgAddr = 0UL;
     uint32_t u32Cfg;
     uint32_t i;
-    USBD_T *pUSBD;
-
-    pUSBD = USBD;
 
     for(i = 0UL; i < USBD_MAX_EP; i++)
     {
-        u32CfgAddr = (uint32_t)(i << 4) + (uint32_t)&pUSBD->EP[0].CFG; /* USBD_CFG0 */
+        u32CfgAddr = (uint32_t)(i << 4) + (uint32_t)&USBD->EP[0].CFG; /* USBD_CFG0 */
         u32Cfg = *((__IO uint32_t *)(u32CfgAddr));
 
         if((u32Cfg & 0xFUL) == epnum)
         {
-            u32CfgAddr = (uint32_t)(i << 4) + (uint32_t)&pUSBD->EP[0].CFGP; /* USBD_CFGP0 */
+            u32CfgAddr = (uint32_t)(i << 4) + (uint32_t)&USBD->EP[0].CFGP; /* USBD_CFGP0 */
             break;
         }
     }
@@ -669,20 +655,28 @@ __STATIC_INLINE uint32_t USBD_GetStall(uint8_t epnum)
     return ((*((__IO uint32_t *)(u32CfgAddr))) & USBD_CFGP_SSTALL);
 }
 
+extern uint8_t g_USBD_au8SetupPacket[8];
 extern volatile uint8_t g_USBD_u8RemoteWakeupEn;
-
 
 typedef void (*VENDOR_REQ)(void);           /*!< Functional pointer type definition for Vendor class */
 typedef void (*CLASS_REQ)(void);            /*!< Functional pointer type declaration for USB class request callback handler */
 typedef void (*SET_INTERFACE_REQ)(uint32_t u32AltInterface);    /*!< Functional pointer type declaration for USB set interface request callback handler */
 typedef void (*SET_CONFIG_CB)(void);       /*!< Functional pointer type declaration for USB set configuration request callback handler */
 
+extern const S_USBD_INFO_T *g_USBD_sInfo;
+
+extern VENDOR_REQ g_USBD_pfnVendorRequest;
+extern CLASS_REQ g_USBD_pfnClassRequest;
+extern SET_INTERFACE_REQ g_USBD_pfnSetInterface;
+extern SET_CONFIG_CB g_USBD_pfnSetConfigCallback;
+extern uint32_t g_USBD_u32EpStallLock;
 
 /*--------------------------------------------------------------------*/
 void USBD_Open(const S_USBD_INFO_T *param, CLASS_REQ pfnClassReq, SET_INTERFACE_REQ pfnSetInterface);
 void USBD_Start(void);
 void USBD_GetSetupPacket(uint8_t *buf);
 void USBD_ProcessSetupPacket(void);
+void USBD_GetDescriptor(void);
 void USBD_StandardRequest(void);
 void USBD_PrepareCtrlIn(uint8_t pu8Buf[], uint32_t u32Size);
 void USBD_CtrlIn(void);
@@ -692,6 +686,7 @@ void USBD_SwReset(void);
 void USBD_SetVendorRequest(VENDOR_REQ pfnVendorReq);
 void USBD_SetConfigCallback(SET_CONFIG_CB pfnSetConfigCallback);
 void USBD_LockEpStall(uint32_t u32EpBitmap);
+
 
 /*@}*/ /* end of group USBD_EXPORTED_FUNCTIONS */
 
@@ -705,4 +700,4 @@ void USBD_LockEpStall(uint32_t u32EpBitmap);
 
 #endif /* __USBD_H__ */
 
-/*** (C) COPYRIGHT 2019 Nuvoton Technology Corp. ***/
+/*** (C) COPYRIGHT 2019-2020 Nuvoton Technology Corp. ***/

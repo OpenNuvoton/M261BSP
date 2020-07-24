@@ -69,7 +69,7 @@ extern "C"
 #define     BUSY_BIT       0x80     /*!< BUSY_BIT mask */
 
 //#define BACK_FROM_ERROR { SingleWrite(0xFF); SPI_SET_SS_HIGH(/*SPI0*/SPI1);  return FALSE;} /*!< macro for SPI write */
-#define BACK_FROM_ERROR { SingleWrite(0xFF); PH10 = 1;  return FALSE;} /*!< macro for SPI write */
+#define BACK_FROM_ERROR do{ SingleWrite(0xFF); PH10 = 1;  return FALSE;}while(0) /*!< macro for SPI write */
 
 
 typedef union                          // byte-addressable unsigned long
@@ -149,11 +149,11 @@ typedef struct
 uint32_t SDCARD_Open(void);
 void SDCARD_Close(void);
 uint32_t SDCARD_GetVersion(void);
-uint32_t MMC_Command_Exec(uint8_t cmd_loc, uint32_t argument, uint8_t *pchar, uint32_t* response);
+uint32_t MMC_Command_Exec(uint8_t u8Cmd, uint32_t u32Arg, uint8_t *pu8Char, uint32_t* pu32Response);
 uint32_t GetLogicSector(void);
 uint32_t SDCARD_GetCardSize(uint32_t* pu32TotSecCnt);
-void SpiRead(uint32_t addr, uint32_t size, uint8_t* buffer);
-void SpiWrite(uint32_t addr, uint32_t size, uint8_t* buffer);
+void SpiRead(uint32_t u32Addr, uint32_t u32Size, uint8_t* pu8Buffer);
+void SpiWrite(uint32_t u32Addr, uint32_t u32Size, uint8_t* pu8Buffer);
 
 /*@}*/ /* end of group M261_SDCARD_EXPORTED_FUNCTIONS */
 

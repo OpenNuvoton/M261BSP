@@ -11,7 +11,10 @@
 #include "NuMicro.h"
 #include "vcom_serial.h"
 
-uint32_t volatile g_u32OutToggle0 = 0, g_u32OutToggle1 = 0;
+static uint32_t volatile s_u32OutToggle0 = 0, s_u32OutToggle1 = 0;
+uint8_t volatile g_u8Suspend = 0;
+
+void USBD_IRQHandler(void);
 
 /*--------------------------------------------------------------------------*/
 void USBD_IRQHandler(void)
@@ -55,10 +58,14 @@ void USBD_IRQHandler(void)
             /* Bus reset */
             USBD_ENABLE_USB();
             USBD_SwReset();
-            g_u32OutToggle0 = g_u32OutToggle1 = 0;
+            s_u32OutToggle0 = s_u32OutToggle1 = 0;
+            g_u8Suspend = 0;
         }
         if(u32State & USBD_STATE_SUSPEND)
         {
+            /* Enter power down to wait USB attached */
+            g_u8Suspend = 1;
+
             /* Enable USB but disable PHY */
             USBD_DISABLE_PHY();
         }
@@ -66,6 +73,7 @@ void USBD_IRQHandler(void)
         {
             /* Enable USB and enable PHY */
             USBD_ENABLE_USB();
+            g_u8Suspend = 0;
         }
     }
 
@@ -194,7 +202,7 @@ void EP2_Handler(void)
 void EP3_Handler(void)
 {
     /* Bulk OUT */
-    if(g_u32OutToggle0 == (USBD->EPSTS0 & USBD_EPSTS0_EPSTS3_Msk))
+    if(s_u32OutToggle0 == (USBD->EPSTS0 & USBD_EPSTS0_EPSTS3_Msk))
     {
         USBD_SET_PAYLOAD_LEN(EP3, EP3_MAX_PKT_SIZE);
     }
@@ -203,7 +211,7 @@ void EP3_Handler(void)
         g_u32RxSize0 = USBD_GET_PAYLOAD_LEN(EP3);
         g_pu8RxBuf0 = (uint8_t *)(USBD_BUF_BASE + USBD_GET_EP_BUF_ADDR(EP3));
 
-        g_u32OutToggle0 = USBD->EPSTS0 & USBD_EPSTS0_EPSTS3_Msk;
+        s_u32OutToggle0 = USBD->EPSTS0 & USBD_EPSTS0_EPSTS3_Msk;
         /* Set a flag to indicate bulk out ready */
         g_i8BulkOutReady0 = 1;
     }
@@ -212,7 +220,7 @@ void EP3_Handler(void)
 void EP6_Handler(void)
 {
     /* Bulk OUT */
-    if(g_u32OutToggle1 == (USBD->EPSTS0 & USBD_EPSTS0_EPSTS6_Msk))
+    if(s_u32OutToggle1 == (USBD->EPSTS0 & USBD_EPSTS0_EPSTS6_Msk))
     {
         USBD_SET_PAYLOAD_LEN(EP6, EP6_MAX_PKT_SIZE);
     }
@@ -221,7 +229,7 @@ void EP6_Handler(void)
         g_u32RxSize1 = USBD_GET_PAYLOAD_LEN(EP6);
         g_pu8RxBuf1 = (uint8_t *)(USBD_BUF_BASE + USBD_GET_EP_BUF_ADDR(EP6));
 
-        g_u32OutToggle1 = USBD->EPSTS0 & USBD_EPSTS0_EPSTS6_Msk;
+        s_u32OutToggle1 = USBD->EPSTS0 & USBD_EPSTS0_EPSTS6_Msk;
         /* Set a flag to indicate bulk out ready */
         g_i8BulkOutReady1 = 1;
     }
@@ -340,13 +348,13 @@ void VCOM_ClassRequest(void)
                 if(au8Buf[4] == 0)    /* VCOM-1 */
                 {
                     g_u16CtrlSignal0 = au8Buf[3];
-                    g_u16CtrlSignal0 = (g_u16CtrlSignal0 << 8) | au8Buf[2];
+                    g_u16CtrlSignal0 = (uint16_t)(g_u16CtrlSignal0 << 8) | au8Buf[2];
                     //printf("RTS=%d  DTR=%d\n", (g_u16CtrlSignal0 >> 1) & 1, g_u16CtrlSignal0 & 1);
                 }
                 if(au8Buf[4] == 2)    /* VCOM-2 */
                 {
                     g_u16CtrlSignal1 = au8Buf[3];
-                    g_u16CtrlSignal1 = (g_u16CtrlSignal1 << 8) | au8Buf[2];
+                    g_u16CtrlSignal1 = (uint16_t)(g_u16CtrlSignal1 << 8) | au8Buf[2];
                     //printf("RTS=%d  DTR=%d\n", (g_u16CtrlSignal0 >> 1) & 1, g_u16CtrlSignal0 & 1);
                 }
 
@@ -381,7 +389,7 @@ void VCOM_ClassRequest(void)
 
 void VCOM_LineCoding(uint8_t u8Port)
 {
-    uint32_t u32Reg, u32Baud_Div;;
+    uint32_t u32Reg, u32Baud_Div;
 
     if(u8Port == 0)
     {
