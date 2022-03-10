@@ -34,7 +34,7 @@ extern char GetChar(void);
 
 
 /*---------------------------------------------------------------------------------------------------------*/
-/* Clear buffer funcion                                                                                    */
+/* Clear buffer function                                                                                   */
 /*---------------------------------------------------------------------------------------------------------*/
 void ClearBuf(uint32_t u32Addr, uint32_t u32Length, uint8_t u8Pattern)
 {
@@ -263,6 +263,8 @@ void UART1_IRQHandler(void)
 /*---------------------------------------------------------------------------------------------------------*/
 void PDMA_UART(int32_t i32option)
 {
+    uint32_t u32TimeOutCnt;
+
     /* Source data initiation */
     BuildSrcPattern((uint32_t)g_au8SrcArray, g_i32UartTestLength);
     ClearBuf((uint32_t)g_au8DestArray, g_i32UartTestLength, 0xFF);
@@ -285,7 +287,7 @@ void PDMA_UART(int32_t i32option)
         printf("  [Using ONE PDMA channel].\n");
         printf("  This sample code will use PDMA to do UART1 Rx test 10 times.\n");
         printf("  Please connect UART1_RXD(PB.6) <--> UART1_TXD(PB.7) before testing.\n");
-        printf("  After connecting PB6.9 <--> PB,7, press any key to start transfer.\n");
+        printf("  After connecting PB.6 <--> PB.7, press any key to start transfer.\n");
         g_u32TwoChannelPdmaTest = 0;
         getchar();
         printf("  Please input %d bytes to trigger PDMA one time.(Ex: Press 'a''b')\n", g_i32UartTestLength);
@@ -340,7 +342,15 @@ void PDMA_UART(int32_t i32option)
     UART1->INTEN |= UART_INTEN_RXPDMAEN_Msk;
 
     /* Wait for PDMA operation finish */
-    while(g_i32IsTestOver == FALSE);
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(g_i32IsTestOver == FALSE)
+    {
+        if(--u32TimeOutCnt == 0)
+        {
+            printf("Wait for PDMA operation finish time-out!\n");
+            break;
+        }
+    }
 
     /* Check PDMA status */
     if(g_i32IsTestOver == 2)

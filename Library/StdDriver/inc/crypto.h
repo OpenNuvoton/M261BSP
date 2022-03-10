@@ -148,7 +148,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro enables PRNG interrupt.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return None
   * \hideinitializer
   */
@@ -156,7 +156,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro disables PRNG interrupt.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return None
   * \hideinitializer
   */
@@ -164,7 +164,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro gets PRNG interrupt flag.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return PRNG interrupt flag.
   * \hideinitializer
   */
@@ -172,7 +172,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro clears PRNG interrupt flag.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return None
   * \hideinitializer
   */
@@ -180,7 +180,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro enables AES interrupt.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return None
   * \hideinitializer
   */
@@ -188,7 +188,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro disables AES interrupt.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return None
   * \hideinitializer
   */
@@ -196,7 +196,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro gets AES interrupt flag.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return AES interrupt flag.
   * \hideinitializer
   */
@@ -204,7 +204,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro clears AES interrupt flag.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return None
   * \hideinitializer
   */
@@ -212,7 +212,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro enables AES key protection.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return None
   * \hideinitializer
   */
@@ -220,7 +220,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro disables AES key protection.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return None
   * \hideinitializer
   */
@@ -229,7 +229,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro enables TDES interrupt.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return None
   * \hideinitializer
   */
@@ -237,7 +237,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro disables TDES interrupt.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return None
   * \hideinitializer
   */
@@ -245,7 +245,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro gets TDES interrupt flag.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return TDES interrupt flag.
   * \hideinitializer
   */
@@ -253,7 +253,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro clears TDES interrupt flag.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return None
   * \hideinitializer
   */
@@ -261,7 +261,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro enables TDES key protection.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return None
   * \hideinitializer
   */
@@ -269,7 +269,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro disables TDES key protection.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return None
   * \hideinitializer
   */
@@ -278,7 +278,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro enables SHA interrupt.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return None
   * \hideinitializer
   */
@@ -286,7 +286,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro disables SHA interrupt.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return None
   * \hideinitializer
   */
@@ -294,7 +294,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro gets SHA interrupt flag.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return SHA interrupt flag.
   * \hideinitializer
   */
@@ -302,7 +302,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro clears SHA interrupt flag.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return None
   * \hideinitializer
   */
@@ -310,7 +310,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro enables ECC interrupt.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return None
   * \hideinitializer
   */
@@ -318,7 +318,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro disables ECC interrupt.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return None
   * \hideinitializer
   */
@@ -326,7 +326,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro gets ECC interrupt flag.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return ECC interrupt flag.
   * \hideinitializer
   */
@@ -334,7 +334,7 @@ typedef struct e_curve_t
 
 /**
   * @brief This macro clears ECC interrupt flag.
-  * @param crpt     Specified cripto module
+  * @param crpt     Specified crypto module
   * @return None
   * \hideinitializer
   */

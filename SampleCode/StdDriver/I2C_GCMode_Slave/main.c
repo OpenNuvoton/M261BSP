@@ -1,4 +1,3 @@
-
 /******************************************************************************
  * @file     main.c
  * @version  V3.00
@@ -139,7 +138,7 @@ void SYS_Init(void)
     /* Enable UART module clock */
     CLK_EnableModuleClock(UART0_MODULE);
 
-    /* Select UART module clock source as HXT `and UART module clock divider as 1 */
+    /* Select UART module clock source as HXT and UART module clock divider as 1 */
     CLK_SetModuleClock(UART0_MODULE, CLK_CLKSEL1_UART0SEL_HXT, CLK_CLKDIV0_UART0(1));
 
     /* Enable I2C0 peripheral clock */
@@ -199,7 +198,7 @@ void I2C0_Close(void)
 /*---------------------------------------------------------------------------------------------------------*/
 int32_t main(void)
 {
-    uint32_t u32i;
+    uint32_t u32i, u32TimeOutCnt;
 
     /* Unlock protected registers */
     SYS_UnlockReg();
@@ -259,11 +258,13 @@ int32_t main(void)
         if(g_au8SlvData[u32i] != g_au8SlvTxData[2])
         {
             printf("GC Mode Receive data fail.\n");
-            while(1);
+            goto lexit;
         }
     }
 
     printf("GC Mode receive data OK.\n");
+
+lexit:
 
     s_I2C0HandlerFn = NULL;
 

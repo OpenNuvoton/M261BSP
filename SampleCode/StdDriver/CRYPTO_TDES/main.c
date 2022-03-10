@@ -82,12 +82,15 @@ void DumpBuffHex(uint8_t *pucBuff, int nBytes)
 
 void SYS_Init(void)
 {
+    uint32_t u32TimeOutCnt;
 
     /* Enable PLL */
     CLK->PLLCTL = CLK_PLLCTL_128MHz_HIRC;
 
     /* Waiting for PLL stable */
-    while((CLK->STATUS & CLK_STATUS_PLLSTB_Msk) == 0);
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while((CLK->STATUS & CLK_STATUS_PLLSTB_Msk) == 0)
+        if(--u32TimeOutCnt ==0) break;
 
     /* Set HCLK divider to 2 */
     CLK->CLKDIV0 = (CLK->CLKDIV0 & (~CLK_CLKDIV0_HCLKDIV_Msk)) | 1;
@@ -109,7 +112,7 @@ void SYS_Init(void)
     //SystemCoreClockUpdate();
     PllClock        = 128000000;           // PLL
     SystemCoreClock = 128000000 / 2;       // HCLK
-    CyclesPerUs     = 64000000 / 1000000;  // For SYS_SysTickDelay()
+    CyclesPerUs     = 64000000 / 1000000;  // For CLK_SysTickDelay()
 
     /*---------------------------------------------------------------------------------------------------------*/
     /* Init I/O Multi-function                                                                                 */
@@ -135,6 +138,8 @@ void DEBUG_PORT_Init()
 /*---------------------------------------------------------------------------------------------------------*/
 int32_t main(void)
 {
+    uint32_t u32TimeOutCnt;
+
     SYS_UnlockReg();
 
     /* Init System, IP clock and multi-function I/O */
@@ -160,11 +165,16 @@ int32_t main(void)
     TDES_SetDMATransfer(CRPT, 0, (uint32_t)g_au8InputData, (uint32_t)g_au8OutputData, sizeof(g_au8InputData));
 
     g_TDES_done = 0;
-    /* Start TDEC calculation */
+    /* Start TDES calculation */
     TDES_Start(CRPT, 0, CRYPTO_DMA_ONE_SHOT);
-    
+
     /* Waiting for TDES done */
-    while(!g_TDES_done);
+    u32TimeOutCnt = SystemCoreClock; /* 1 secod time-out */
+    while(!g_TDES_done)
+    {
+        printf("Wait for TDES encrypt done time-out!\n");
+        goto lexit;
+    }
 
     printf("TDES encrypt done.\n\n");
     DumpBuffHex(g_au8OutputData, sizeof(g_au8InputData));
@@ -179,10 +189,17 @@ int32_t main(void)
 
     g_TDES_done = 0;
     TDES_Start(CRPT, 0, CRYPTO_DMA_ONE_SHOT);
-    while(!g_TDES_done);
+    u32TimeOutCnt = SystemCoreClock; /* 1 secod time-out */
+    while(!g_TDES_done)
+    {
+        printf("Wait for TDES decrypt done time-out!\n");
+        goto lexit;
+    }
 
     printf("TDES decrypt done.\n\n");
     DumpBuffHex(g_au8InputData, sizeof(g_au8InputData));
+
+lexit:
 
     while(1);
 }

@@ -30,7 +30,7 @@ void SYS_Init(void)
     /* Init System Clock                                                                                       */
     /*---------------------------------------------------------------------------------------------------------*/
 
-    /* Enable HIRC clock (Internal RC 22.1184MHz) */
+    /* Enable HIRC clock (Internal RC 12MHz) */
     CLK_EnableXtalRC(CLK_PWRCTL_HIRCEN_Msk);
 
     /* Wait for HIRC clock ready */
@@ -90,6 +90,7 @@ void UART0_Init()
 void EADC_FunctionTest()
 {
     int32_t  i32ConversionData;
+    uint32_t u32TimeOutCnt;
 
     printf("\n");
     printf("+----------------------------------------------------------------------+\n");
@@ -115,7 +116,15 @@ void EADC_FunctionTest()
     EADC_START_CONV(EADC, BIT16);
 
     /* Wait EADC conversion done */
-    while(g_u32AdcIntFlag == 0);
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(g_u32AdcIntFlag == 0)
+    {
+        if(--u32TimeOutCnt == 0)
+        {
+            printf("Wait for EADC conversion done time-out!\n");
+            return;
+        }
+    }
 
     /* Disable the ADINT0 interrupt */
     EADC_DISABLE_INT(EADC, BIT0);

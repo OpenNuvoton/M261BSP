@@ -165,16 +165,7 @@ void UART_DisableInt(UART_T*  uart, uint32_t u32InterruptFlag)
  *
  *    @return       None
  *
- *    @details      The function is used to Enable UART auto flow control.
- */
-/**
- *    @brief        Enable UART auto flow control function
- *
- *    @param[in]    uart    The pointer of the specified UART module.
- *
- *    @return       None
- *
- *    @details      The function is used to Enable UART auto flow control.
+ *    @details      The function is used to enable UART auto flow control.
  */
 void UART_EnableFlowCtrl(UART_T* uart)
 {
@@ -287,7 +278,7 @@ void UART_Open(UART_T* uart, uint32_t u32baudrate)
             u32UartClkDivNum = CLK_GetModuleClockDivider(UART5_MODULE);
             break;
         default:
-            break;
+            return ;
     }
 
     /* Select UART function */
@@ -429,7 +420,7 @@ void UART_SetLineConfig(UART_T* uart, uint32_t u32baudrate, uint32_t u32data_wid
             u32UartClkDivNum = CLK_GetModuleClockDivider(UART5_MODULE);
             break;
         default:
-            break;
+            return ;
     }
 
     /* Get PLL clock frequency if UART clock source selection is PLL */
@@ -528,7 +519,7 @@ void UART_SelectIrDAMode(UART_T* uart, uint32_t u32Buadrate, uint32_t u32Directi
             u32UartClkDivNum = CLK_GetModuleClockDivider(UART5_MODULE);
             break;
         default:
-            break;
+            return ;
     }
 
     /* Get PLL clock frequency if UART clock source selection is PLL */
@@ -631,7 +622,7 @@ uint32_t UART_Write(UART_T* uart, uint8_t pu8TxBuf[], uint32_t u32WriteBytes)
     for(u32Count = 0ul; u32Count != u32WriteBytes; u32Count++)
     {
         u32delayno = 0ul;
-        while( uart->FIFOSTS & UART_FIFOSTS_TXFULL_Msk )   /* Check Tx full and Time-out manner */
+        while( uart->FIFOSTS & UART_FIFOSTS_TXFULL_Msk )   /* Wait Tx not full or Time-out manner */
         {
             u32delayno++;
             if(u32delayno >= 0x40000000ul)

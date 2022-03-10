@@ -115,8 +115,8 @@ void UART_Init(void)
  *----------------------------------------------------------------------------*/
 int main(void)
 {
-    uint32_t au32Output[(256 / 8)];
-    
+    uint32_t au32Output[(256 / 8)], u32TimeOutCnt;
+
     /* Unlock protected registers */
     SYS_UnlockReg();
 
@@ -146,22 +146,30 @@ int main(void)
 
     g_u32IsSHA_done = 0;
     XSHA_Start(XCRPT, CRYPTO_DMA_ONE_SHOT);
-    while(g_u32IsSHA_done == 0) {}
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(g_u32IsSHA_done == 0)
+    {
+        if(--u32TimeOutCnt == 0)
+        {
+            printf("Wait for SHA done time-out!\n");
+            return -1;
+        }
+    }
 
     XSHA_Read(XCRPT, au32Output);
 
-    printf("SHA-256:\n");    
+    printf("SHA-256:\n");
     dump_buff_hex((uint8_t *)au32Output, (256 / 8));
-        
+
     /*--------------------------------------------*/
     /*  Compare                                   */
     /*--------------------------------------------*/
     if(do_compare((uint8_t *)&au32Output[0], (uint8_t *)&g_au32Expect[0], (256 / 8)) < 0)
     {
         printf("Compare error!\n");
-        while(1) {}
+        return -1;
     }
-    
+
     while(1) {}
 }
 

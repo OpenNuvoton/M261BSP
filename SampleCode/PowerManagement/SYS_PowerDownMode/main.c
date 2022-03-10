@@ -44,7 +44,7 @@ void RTC_IRQHandler(void)
 /*---------------------------------------------------------------------------------------------------------*/
 /*  Function for RTC wake-up source setting                                                                */
 /*---------------------------------------------------------------------------------------------------------*/
-void RTC_Init(void)
+int32_t RTC_Init(void)
 {
     S_RTC_TIME_DATA_T sWriteRTC;
 
@@ -65,7 +65,11 @@ void RTC_Init(void)
         sWriteRTC.u32Minute     = 0;
         sWriteRTC.u32Second     = 0;
         sWriteRTC.u32TimeScale  = RTC_CLOCK_24;
-        RTC_Open(&sWriteRTC);
+        if( RTC_Open(&sWriteRTC) < 0 )
+        {
+            printf("Initialize RTC module and start counting failed\n");
+            return -1;
+        }
         printf("# Set RTC current date/time: 2017/03/16 00:00:00.\n");
 
         /* It is the start of sample code */
@@ -91,6 +95,7 @@ void RTC_Init(void)
     /* Lock protected registers */
     SYS_LockReg();
 
+    return 0;
 }
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -98,11 +103,15 @@ void RTC_Init(void)
 /*---------------------------------------------------------------------------------------------------------*/
 void PowerDownFunction(void)
 {
+    uint32_t u32TimeOutCnt;
+
     /* Select Power-down mode */
     CLK_SetPowerDownMode(g_u32PowerDownMode);
 
     /* To check if all the debug messages are finished */
-    while(IsDebugFifoEmpty() == 0);
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(IsDebugFifoEmpty() == 0)
+        if(--u32TimeOutCnt == 0) break;
 
     /* Enter to Power-down mode */
     CLK_PowerDown();
@@ -111,7 +120,7 @@ void PowerDownFunction(void)
 /*-----------------------------------------------------------------------------------------------------------*/
 /*  Function for Check Power Manager Status                                                                  */
 /*-----------------------------------------------------------------------------------------------------------*/
-void CheckPowerSource(void)
+int32_t CheckPowerSource(void)
 {
     S_RTC_TIME_DATA_T sReadRTC;
 
@@ -164,12 +173,12 @@ void CheckPowerSource(void)
                 /* End of sample code and clear Power-down Mode flag */
                 printf("\nSample code end. Press Reset Button and continue.\n");
                 M32(PDMD_FLAG_ADDR) = 0;
-                while(1);
-
+                return 1;
         }
 
     }
 
+    return 0;
 }
 
 
@@ -209,7 +218,7 @@ void SYS_Init(void)
     /* Select UART module clock source as HXT and UART module clock divider as 1 */
     CLK_SetModuleClock(UART0_MODULE, CLK_CLKSEL1_UART0SEL_HXT, CLK_CLKDIV0_UART0(1));
 
-    /* Enable peripheral clock */
+    /* Enable RTC module clock */
     CLK_EnableModuleClock(RTC_MODULE);
 
     /* Update System Core Clock */
@@ -246,15 +255,16 @@ void UART0_Init()
 int32_t main(void)
 {
     S_RTC_TIME_DATA_T sReadRTC;
+    uint32_t u32TimeOutCnt;
 
     /* Unlock protected registers */
     SYS_UnlockReg();
 
     /* Init System, peripheral clock and multi-function I/O */
     SYS_Init();
-    
+
     /* Release I/O hold status */
-    CLK->IOPDCTL = 1;    
+    CLK->IOPDCTL = 1;
 
     /* Lock protected registers */
     SYS_LockReg();
@@ -266,10 +276,12 @@ int32_t main(void)
     CLK_EnableCKO(CLK_CLKSEL1_CLKOSEL_HCLK, 3, 0);
 
     /* Get power manager wake up source */
-    CheckPowerSource();
+    if( CheckPowerSource() != 0)
+        goto lexit;
 
     /* RTC wake-up source setting */
-    RTC_Init();
+    if( RTC_Init() < 0 )
+        goto lexit;
 
     /*
         This sample code will enter to different Power-down mode and wake-up by RTC:
@@ -288,28 +300,27 @@ int32_t main(void)
         switch(g_u32PowerDownMode)
         {
             case CLK_PMUCTL_PDMSEL_PD:
-                printf("\nSystem enter to PD power-down mode ... ");
+                printf("\nSystem enters to PD power-down mode ... ");
                 break;
             case CLK_PMUCTL_PDMSEL_LLPD:
-                printf("\nSystem enter to LLPD power-down mode ... ");
+                printf("\nSystem enters to LLPD power-down mode ... ");
                 break;
             case CLK_PMUCTL_PDMSEL_FWPD:
-                printf("\nSystem enter to FWPD power-down mode ... ");
+                printf("\nSystem enters to FWPD power-down mode ... ");
                 break;
             case CLK_PMUCTL_PDMSEL_ULLPD:
-                printf("\nSystem enter to ULLPD power-down mode ... ");
+                printf("\nSystem enters to ULLPD power-down mode ... ");
                 break;
             case CLK_PMUCTL_PDMSEL_SPD:
-                printf("\nSystem enter to SPD power-down mode ... ");
+                printf("\nSystem enters to SPD power-down mode ... ");
                 break;
             case CLK_PMUCTL_PDMSEL_DPD:
-                printf("\nSystem enter to DPD power-down mode ... ");
+                printf("\nSystem enters to DPD power-down mode ... ");
                 break;
             default:
                 printf("\nInit sample code. Press Reset Button and continue.\n");
                 M32(PDMD_FLAG_ADDR) = 0;
-                while(1);
-                break;
+                goto lexit;
         }
 
         /* Unlock protected registers before setting Power-down mode */
@@ -317,7 +328,15 @@ int32_t main(void)
 
         /* Enter to Power-down mode */
         PowerDownFunction();
-        while(g_u32RTCTickINT == 0);
+        u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+        while(g_u32RTCTickINT == 0)
+        {
+            if(--u32TimeOutCnt == 0)
+            {
+                printf("Wait for RTC interrupt time-out!");
+                break;
+            }
+        }
         printf("Wake-up!\n");
 
         /* Read current RTC date/time after wake-up */
@@ -343,13 +362,13 @@ int32_t main(void)
             default:
                 printf("\nPress Reset Button and continue.\n");
                 M32(PDMD_FLAG_ADDR) = 0;
-                while(1);
-                break;
+                goto lexit;
         }
-
     }
 
+lexit:
 
+    while(1);
 }
 
 

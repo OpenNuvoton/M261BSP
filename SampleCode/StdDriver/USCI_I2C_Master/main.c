@@ -1,4 +1,3 @@
-
 /******************************************************************************
  * @file     main.c
  * @version  V3.00
@@ -281,7 +280,7 @@ void UI2C0_Init(uint32_t u32ClkSpeed)
 
 int32_t Read_Write_SLAVE(uint8_t u8SlvAddr)
 {
-    uint32_t u32i;
+    uint32_t u32i, u32TimeOutCnt;
 
     g_u8DeviceAddr = u8SlvAddr;
 
@@ -302,7 +301,15 @@ int32_t Read_Write_SLAVE(uint8_t u8SlvAddr)
         UI2C_SET_CONTROL_REG(UI2C0, UI2C_CTL_STA);
 
         /* Wait USCI_I2C Tx Finish */
-        while(g_u8MstEndFlag == 0);
+        u32TimeOutCnt = UI2C_TIMEOUT;
+        while(g_u8MstEndFlag == 0)
+        {
+            if(--u32TimeOutCnt == 0)
+            {
+                printf("Wait for USCI_I2C Tx finish time-out!\n");
+                return -1;
+            }
+        }
         g_u8MstEndFlag = 0;
 
         /* USCI_I2C function to read data from slave */
@@ -316,7 +323,15 @@ int32_t Read_Write_SLAVE(uint8_t u8SlvAddr)
         UI2C_SET_CONTROL_REG(UI2C0, UI2C_CTL_STA);
 
         /* Wait USCI_I2C Rx Finish */
-        while(g_u8MstEndFlag == 0);
+        u32TimeOutCnt = UI2C_TIMEOUT;
+        while(g_u8MstEndFlag == 0)
+        {
+            if(--u32TimeOutCnt == 0)
+            {
+                printf("Wait for USCI_I2C Rx finish time-out!\n");
+                return -1;
+            }
+        }
         g_u8MstEndFlag = 0;
 
         /* Compare data */

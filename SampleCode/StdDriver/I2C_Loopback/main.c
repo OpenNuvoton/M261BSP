@@ -1,4 +1,3 @@
-
 /******************************************************************************
  * @file     main.c
  * @version  V3.00
@@ -367,56 +366,9 @@ void I2C1_Close(void)
     CLK_DisableModuleClock(I2C1_MODULE);
 }
 
-int32_t I2C0_Read_Write_SLAVE(uint8_t u8SlvAddr)
-{
-    uint32_t u32i;
-
-    g_u8DeviceAddr = u8SlvAddr;
-
-    for(u32i = 0; u32i < 0x100; u32i++)
-    {
-        g_au8MstTxData[0] = (uint8_t)((u32i & 0xFF00) >> 8);
-        g_au8MstTxData[1] = (uint8_t)(u32i & 0x00FF);
-        g_au8MstTxData[2] = (uint8_t)(g_au8MstTxData[1] + 3);
-
-        g_u8MstDataLen = 0;
-        g_u8MstEndFlag = 0;
-
-        /* I2C function to write data to slave */
-        s_I2C0HandlerFn = (I2C_FUNC)I2C_MasterTx;
-
-        /* I2C as master sends START signal */
-        I2C_SET_CONTROL_REG(I2C0, I2C_CTL_STA);
-
-        /* Wait I2C Tx Finish */
-        while(g_u8MstEndFlag == 0);
-        g_u8MstEndFlag = 0;
-
-        /* I2C function to read data from slave */
-        s_I2C0HandlerFn = (I2C_FUNC)I2C_MasterRx;
-
-        g_u8MstDataLen = 0;
-        g_u8DeviceAddr = u8SlvAddr;
-
-        I2C_SET_CONTROL_REG(I2C0, I2C_CTL_STA);
-
-        /* Wait I2C Rx Finish */
-        while(g_u8MstEndFlag == 0);
-
-        /* Compare data */
-        if(g_u8MstRxData != g_au8MstTxData[2])
-        {
-            printf("I2C Byte Write/Read Failed, Data 0x%x\n", g_u8MstRxData);
-            return -1;
-        }
-    }
-    printf("Master Access Slave (0x%X) Test OK\n", u8SlvAddr);
-    return 0;
-}
-
 int32_t I2C0_Read_Write_Slave(uint8_t u8SlvAddr)
 {
-    uint32_t u32i;
+    uint32_t u32i, u32TimeOutCnt;
 
     g_u8DeviceAddr = u8SlvAddr;
 
@@ -436,7 +388,15 @@ int32_t I2C0_Read_Write_Slave(uint8_t u8SlvAddr)
         I2C_SET_CONTROL_REG(I2C0, I2C_CTL_STA);
 
         /* Wait I2C0 Tx Finish */
-        while(g_u8MstEndFlag == 0);
+        u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+        while(g_u8MstEndFlag == 0)
+        {
+            if(--u32TimeOutCnt == 0)
+            {
+                printf("Wait for I2C Tx finish time-out!\n");
+                return -1;
+            }
+        }
         g_u8MstEndFlag = 0;
 
         /* I2C0 function to read data from slave */
@@ -448,7 +408,15 @@ int32_t I2C0_Read_Write_Slave(uint8_t u8SlvAddr)
         I2C_SET_CONTROL_REG(I2C0, I2C_CTL_STA);
 
         /* Wait I2C0 Rx Finish */
-        while(g_u8MstEndFlag == 0);
+        u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+        while(g_u8MstEndFlag == 0)
+        {
+            if(--u32TimeOutCnt == 0)
+            {
+                printf("Wait for I2C Rx finish time-out!\n");
+                return -1;
+            }
+        }
 
         /* Compare data */
         if(g_u8MstRxData != g_au8MstTxData[2])

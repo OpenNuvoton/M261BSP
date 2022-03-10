@@ -147,6 +147,12 @@ int32_t main(void)
             break;
     }
 
+    if (g_FMC_i32ErrCode != 0)
+    {
+        printf("FMC_SetVectorPageAddr failed!\n");
+        return -1;
+    }
+
     /* Reset CPU only to reset to new vector page */
     SYS_ResetCPU();
 
@@ -154,17 +160,6 @@ int32_t main(void)
     //NVIC_SystemReset();
 
     while(1);
-
-lexit:
-
-    /* Disable ISP function */
-    FMC_Close();
-
-    /* Lock protected registers */
-    SYS_LockReg();
-
-    printf("\nDone\n");
-    while(SYS->PDID) __WFI();
 
 }
 /*** (C) COPYRIGHT 2019 Nuvoton Technology Corp. ***/

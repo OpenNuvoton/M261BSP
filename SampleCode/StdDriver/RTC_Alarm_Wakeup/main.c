@@ -107,6 +107,7 @@ void UART_Init(void)
 int main(void)
 {
     S_RTC_TIME_DATA_T sWriteRTC, sReadRTC;
+    uint32_t u32TimeOutCnt;
 
     /* Unlock protected registers */
     SYS_UnlockReg();
@@ -137,7 +138,12 @@ int main(void)
     sWriteRTC.u32Minute     = 59;
     sWriteRTC.u32Second     = 50;
     sWriteRTC.u32TimeScale  = RTC_CLOCK_24;
-    RTC_Open(&sWriteRTC);
+    if(RTC_Open(&sWriteRTC) != 0)
+    {
+        printf("\n RTC initial fail!!");
+        printf("\n Please check h/w setting!!");
+        return -1;
+    }
 
     /* Set RTC alarm date/time */
     sWriteRTC.u32Year       = 2017;
@@ -163,7 +169,9 @@ int main(void)
     SYS_UnlockReg();
     printf("\nSystem enter to power-down mode ...\n");
     /* To check if all the debug messages are finished */
-    while(IsDebugFifoEmpty() == 0) {}
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(IsDebugFifoEmpty() == 0)
+        if(--u32TimeOutCnt == 0) break;
     CLK_PowerDown();
 
     while(g_u8IsRTCAlarmINT == 0) {}
@@ -188,7 +196,9 @@ int main(void)
     SYS_UnlockReg();
     printf("\nSystem enter to power-down mode ...\n");
     /* To check if all the debug messages are finished */
-    while(IsDebugFifoEmpty() == 0) {}
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(IsDebugFifoEmpty() == 0)
+        if(--u32TimeOutCnt == 0) break;
     CLK_PowerDown();
 
     while(g_u8IsRTCAlarmINT == 0);

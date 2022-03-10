@@ -109,7 +109,7 @@ void SysTick_Handler(void)
 
         default:
             printf("Unknown db_state state!\n");
-            while(1);
+            break;
     }
 }
 
@@ -121,7 +121,6 @@ void enable_sys_tick(int ticks_per_second)
     {
         /* Setup SysTick Timer for 1 second interrupts  */
         printf("Set system tick error!!\n");
-        while(1);
     }
 }
 
@@ -335,7 +334,7 @@ int32_t main(void)
         if(inpw(u32Addr) != u32Addr)
         {
             printf("Flash address 0x%x verify failed! expect: 0x%x, read: 0x%x.\n", u32Addr, u32Addr, inpw(u32Addr));
-            while(1);
+            return -1;
         }
     }
     printf("Verify OK.\n");

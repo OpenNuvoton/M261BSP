@@ -79,7 +79,7 @@ void SYS_Init(void)
     /* Init System Clock                                                                                       */
     /*---------------------------------------------------------------------------------------------------------*/
 
-    /* Enable HIRC clock (Internal RC 22.1184 MHz) */
+    /* Enable HIRC clock (Internal RC 12 MHz) */
     CLK_EnableXtalRC(CLK_PWRCTL_HIRCEN_Msk);
 
     /* Waiting for HIRC clock ready */
@@ -135,6 +135,8 @@ void UART0_Init(void)
 /*---------------------------------------------------------------------------------------------------------*/
 int main(void)
 {
+    uint32_t u32TimeOutCnt;
+
     /* Unlock protected registers */
     SYS_UnlockReg();
 
@@ -150,7 +152,7 @@ int main(void)
 
     printf("\n\nCPU @ %dHz\n", SystemCoreClock);
     printf("+-----------------------------------------------------------------------+ \n");
-    printf("|    M261 PDMA Driver Ping-Pong Buffer Sample Code (Scatter-gather)    | \n");
+    printf("|    M261 PDMA Driver Ping-Pong Buffer Sample Code (Scatter-gather)     | \n");
     printf("+-----------------------------------------------------------------------+ \n");
 
     /* This sample will transfer data by looped around two descriptor tables from two different source to the same destination buffer in sequence.
@@ -279,17 +281,26 @@ int main(void)
     /* Start PDMA operatin */
     PDMA_Trigger(PDMA0, 4);
 
-    while(1)
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(g_u32IsTestOver == 0)
     {
-        if(g_u32IsTestOver == 1)
+        if(--u32TimeOutCnt == 0)
         {
-            g_u32IsTestOver = 0;
-            printf("test done...\n");
-
-            /* Close PDMA channel */
-            PDMA_Close(PDMA0);
+            printf("Wait for PDMA time-out!\n");
+            break;
         }
     }
+
+    if(g_u32IsTestOver == 1)
+    {
+        g_u32IsTestOver = 0;
+        printf("test done...\n");
+    }
+
+    /* Close PDMA channel */
+    PDMA_Close(PDMA0);
+
+    while(1);
 }
 
 /*** (C) COPYRIGHT 2019 Nuvoton Technology Corp. ***/

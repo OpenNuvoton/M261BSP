@@ -2,7 +2,7 @@
  * @file     main.c
  * @version  V3.00
  * @brief    Demonstrate how to generate a boot image(NuBL2) and can be authenticated by Secure Botloader(NuBL1).
- *           After NuBL2 runs, NuBL2 will authenticate NuBL32 then jumpt to execute in NuBL32.
+ *           After NuBL2 runs, NuBL2 will authenticate NuBL32 then jump to execute in NuBL32.
  *
  * @copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
  ******************************************************************************/
@@ -27,7 +27,7 @@ static int32_t CheckBootingStatus(void)
     int32_t     i;
     uint32_t    u32CFG0, au32OTP[8];
     uint32_t    *pu32Info, u32Size;
-        
+
     /* Unlock protected registers */
     SYS_UnlockReg();
 
@@ -109,11 +109,11 @@ static int32_t CheckBootingStatus(void)
     return 0;
 }
 
-void EnableXOM0(void)
+int32_t EnableXOM0(void)
 {
     int32_t i32Status;
     uint32_t u32Base = 0x10000, u32Page = 4;
-    
+
     /* Unlock protected registers */
     SYS_UnlockReg();
 
@@ -124,7 +124,7 @@ void EnableXOM0(void)
     if((FMC->XOMSTS & 0x1) != 0x1)
     {
         printf("\nXOM0 base: 0x%x, page count: %d.\n\n", u32Base, u32Page);
-        
+
         if(FMC_GetXOMState(XOMR0) == 0)
         {
             i32Status = FMC_ConfigXOM(XOMR0, u32Base, u32Page);
@@ -135,13 +135,13 @@ void EnableXOM0(void)
             else
             {
                 printf("Configure XOM0 FAIL.\n");
-                while(1) {}
+                return -1;
             }
         }
         else
         {
             printf("Get XOM0 status FAIL.\n\n");
-            while(1) {}
+            return -1;
         }
 
         printf("Reset chip to enable XOM region.\n\n");
@@ -155,6 +155,8 @@ void EnableXOM0(void)
     {
         printf("XOM0 region is already actived.\n\n");
     }
+
+    return 0;
 }
 
 void SYS_Init(void)
@@ -211,8 +213,8 @@ void UART_Init(void)
 /*---------------------------------------------------------------------------------------------------------*/
 int main(void)
 {
-    uint32_t u32NuBL32Base;
-    
+    uint32_t u32NuBL32Base, u32TimeOutCnt;
+
     /* Unlock protected registers */
     SYS_UnlockReg();
 
@@ -232,7 +234,7 @@ int main(void)
     
 #if (ENABLE_XOM0_REGION == 1)
     /* Enable XOM0, and all the functions in VerifyNuBL3x.c cannot trace in ICE debug mode  */
-    EnableXOM0();
+    if( EnableXOM0() < 0 ) return -1;
 #endif    
     
     /* Verify NuBL32 identity and F/W integrity */
@@ -240,7 +242,7 @@ int main(void)
     if(VerifyNuBL3x((uint32_t *)&g_NuBL3xFwInfo, NUBL32_FW_INFO_BASE) == -1)
     {
         printf("\n\nNuBL2 verifies NuBL32 FAIL.\n");
-        while(1) {}
+        return -1;
     }
     else
     {
@@ -251,11 +253,13 @@ int main(void)
     
     /* Jump to execute NuBL32 F/W */
     printf("\nJump to execute NuBL32...\n");
-    UART_WAIT_TX_EMPTY((UART_T *)DEBUG_PORT);
-    
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    UART_WAIT_TX_EMPTY((UART_T *)DEBUG_PORT)
+        if(--u32TimeOutCnt == 0) break;
+
     /* Disable all interrupt */
     __set_PRIMASK(1);
-    
+
     FMC_ENABLE_ISP();
     FMC_SetVectorPageAddr(u32NuBL32Base);
 

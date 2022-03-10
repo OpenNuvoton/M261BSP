@@ -28,7 +28,7 @@ void SYS_Init(void)
     /*---------------------------------------------------------------------------------------------------------*/
     /* Init System Clock                                                                                       */
     /*---------------------------------------------------------------------------------------------------------*/
-    /* Enable HIRC clock (Internal RC 22.1184 MHz) */
+    /* Enable HIRC clock (Internal RC 12 MHz) */
     CLK_EnableXtalRC(CLK_PWRCTL_HIRCEN_Msk);
 
     /* Waiting for HIRC clock ready */
@@ -184,9 +184,9 @@ int32_t main(void)
     printf("Press any key to stop.\n");
     getchar();
 
-    /* Start EPWM0 counter */
+    /* Stop EPWM0 counter */
     EPWM_ForceStop(EPWM0, 0x3F);
-    /* Start EPWM1 counter */
+    /* Stop EPWM1 counter */
     EPWM_ForceStop(EPWM1, 0x3F);
 
     printf("Done.");

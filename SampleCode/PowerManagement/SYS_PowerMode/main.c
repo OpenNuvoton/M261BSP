@@ -43,8 +43,12 @@ void WDT_IRQHandler(void)
 /*---------------------------------------------------------------------------------------------------------*/
 void PowerDownFunction(void)
 {
+    uint32_t u32TimeOutCnt;
+
     /* To check if all the debug messages are finished */
-    while(IsDebugFifoEmpty() == 0);
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(IsDebugFifoEmpty() == 0)
+        if(--u32TimeOutCnt == 0) break;
 
     /* Enter to Power-down mode */
     CLK_PowerDown();
@@ -192,6 +196,8 @@ void UART0_Init(void)
 /*---------------------------------------------------------------------------------------------------------*/
 int32_t main(void)
 {
+    uint32_t u32TimeOutCnt;
+
     /* Unlock protected registers */
     SYS_UnlockReg();
 
@@ -265,7 +271,15 @@ int32_t main(void)
     PowerDownFunction();
 
     /* Check if WDT time-out interrupt and wake-up occurred or not */
-    while(g_u8IsINTEvent == 0);
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(g_u8IsINTEvent == 0)
+    {
+        if(--u32TimeOutCnt == 0)
+        {
+            printf("Wait for WDT interrupt time-out!\n");
+            break;
+        }
+    }
 
     /* Check system work */
     CheckSystemWork();

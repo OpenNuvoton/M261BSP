@@ -30,7 +30,7 @@ void SYS_Init(void)
     /* Init System Clock                                                                                       */
     /*---------------------------------------------------------------------------------------------------------*/
 
-    /* Enable HIRC clock (Internal RC 22.1184 MHz) */
+    /* Enable HIRC clock (Internal RC 12 MHz) */
     CLK_EnableXtalRC(CLK_PWRCTL_HIRCEN_Msk);
 
     /* Wait for HIRC clock ready */
@@ -183,9 +183,9 @@ int32_t main(void)
     /* Wait for user press any key to stop */
     getchar();
 
-    /* Start BPWM0 counter */
+    /* Stop BPWM0 counter */
     BPWM_ForceStop(BPWM0, 0x3F);
-    /* Start BPWM1 counter */
+    /* Stop BPWM1 counter */
     BPWM_ForceStop(BPWM1, 0x3F);
 
     printf("Done.");

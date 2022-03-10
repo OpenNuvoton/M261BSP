@@ -212,7 +212,7 @@ void AutoFlow_FunctionTxTest(void)
 /*---------------------------------------------------------------------------------------------------------*/
 void AutoFlow_FunctionRxTest(void)
 {
-    uint32_t u32Idx;
+    uint32_t u32Idx, u32Err = 0;
 
     /* Enable RTS and CTS autoflow control */
     UART_EnableFlowCtrl(UART1);
@@ -239,11 +239,15 @@ void AutoFlow_FunctionRxTest(void)
     {
         if(g_u8RecData[u32Idx] != (u32Idx & 0xFF))
         {
-            printf("Compare Data Failed\n");
-            while(1);
+            u32Err = 1;
+            break;
         }
     }
-    printf("\n Receive OK & Check OK\n");
+
+    if( u32Err )
+        printf("Compare Data Failed\n");
+    else
+        printf("\n Receive OK & Check OK\n");
 
     /* Disable RDA and RTO Interrupt */
     UART_DisableInt(UART1, (UART_INTEN_RDAIEN_Msk | UART_INTEN_RLSIEN_Msk | UART_INTEN_RXTOIEN_Msk));
@@ -268,6 +272,7 @@ void UART1_IRQHandler(void)
         }
     }
 
+    /* Handle transmission error */
     if(UART1->FIFOSTS & (UART_FIFOSTS_BIF_Msk | UART_FIFOSTS_FEF_Msk | UART_FIFOSTS_PEF_Msk | UART_FIFOSTS_RXOVIF_Msk))
     {
         UART1->FIFOSTS = (UART_FIFOSTS_BIF_Msk | UART_FIFOSTS_FEF_Msk | UART_FIFOSTS_PEF_Msk | UART_FIFOSTS_RXOVIF_Msk);

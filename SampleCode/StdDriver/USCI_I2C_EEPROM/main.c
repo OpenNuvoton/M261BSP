@@ -1,4 +1,3 @@
-
 /******************************************************************************
  * @file     main.c
  * @version  V3.00
@@ -266,7 +265,7 @@ void UI2C0_Init(void)
 
 int main(void)
 {
-    uint32_t u32i;
+    uint32_t u32i, u32TimeOutCnt;
 
     /* Unlock protected registers */
     SYS_UnlockReg();
@@ -316,7 +315,15 @@ int main(void)
         UI2C_SET_CONTROL_REG(UI2C0, UI2C_CTL_STA);
 
         /* Wait USCI_I2C Tx Finish */
-        while(g_u8EndFlagM == 0);
+        u32TimeOutCnt = UI2C_TIMEOUT;
+        while(g_u8EndFlagM == 0)
+        {
+            if(--u32TimeOutCnt == 0)
+            {
+                printf("Wait for USCI_I2C Tx finish time-out!\n");
+                return -1;
+            }
+        }
         g_u8EndFlagM = 0;
 
         /* USCI_I2C function to read data from slave */
@@ -329,7 +336,15 @@ int main(void)
         UI2C_SET_CONTROL_REG(UI2C0, UI2C_CTL_STA);
 
         /* Wait USCI_I2C Rx Finish */
-        while(g_u8EndFlagM == 0);
+        u32TimeOutCnt = UI2C_TIMEOUT;
+        while(g_u8EndFlagM == 0)
+        {
+            if(--u32TimeOutCnt == 0)
+            {
+                printf("Wait for USCI_I2C Rx finish time-out!\n");
+                return -1;
+            }
+        }
         g_u8EndFlagM = 0;
 
         /* Compare data */

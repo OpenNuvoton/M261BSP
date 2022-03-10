@@ -58,8 +58,10 @@ uint32_t CLK_GetCPUFreq(void)
     return 48000000;
 }
 
-void SYS_Init(void)
+int32_t SYS_Init(void)
 {
+    uint32_t u32TimeOutCnt;
+
     /*---------------------------------------------------------------------------------------------------------*/
     /* Init System Clock                                                                                       */
     /*---------------------------------------------------------------------------------------------------------*/
@@ -67,7 +69,9 @@ void SYS_Init(void)
     CLK->PWRCTL |= CLK_PWRCTL_HIRC48EN_Msk;
 
     /* Waiting for Internal RC clock ready */
-    while(!(CLK->STATUS & CLK_STATUS_HIRC48STB_Msk));
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(!(CLK->STATUS & CLK_STATUS_HIRC48STB_Msk))
+        if(--u32TimeOutCnt == 0) return -1;
 
     /* Switch HCLK clock source to Internal RC and HCLK source divide 1 */
     CLK->CLKSEL0 = (CLK->CLKSEL0 & (~CLK_CLKSEL0_HCLKSEL_Msk)) | CLK_CLKSEL0_HCLKSEL_HIRC48;
@@ -86,6 +90,8 @@ void SYS_Init(void)
     /* USBD multi-function pins for VBUS, D+, D-, and ID pins */
     SYS->GPA_MFPH &= ~(SYS_GPA_MFPH_PA12MFP_Msk | SYS_GPA_MFPH_PA13MFP_Msk | SYS_GPA_MFPH_PA14MFP_Msk | SYS_GPA_MFPH_PA15MFP_Msk);
     SYS->GPA_MFPH |= (SYS_GPA_MFPH_PA12MFP_USB_VBUS | SYS_GPA_MFPH_PA13MFP_USB_D_N | SYS_GPA_MFPH_PA14MFP_USB_D_P | SYS_GPA_MFPH_PA15MFP_USB_OTG_ID);
+
+    return 0;
 }
 
 void USBD_IRQHandler(void);
@@ -163,6 +169,8 @@ int32_t main(void)
 
         USBD_IRQHandler();
     }
+
+_APROM:
 
     SYS->RSTSTS = (SYS_RSTSTS_PORF_Msk | SYS_RSTSTS_PINRF_Msk);//clear bit
     FMC->ISPCTL &=  ~(FMC_ISPCTL_ISPEN_Msk | FMC_ISPCTL_BS_Msk);

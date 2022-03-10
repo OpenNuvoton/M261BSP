@@ -1,4 +1,3 @@
-
 /******************************************************************************
  * @file     main.c
  * @version  V3.00
@@ -124,7 +123,7 @@ void SYS_Init(void)
     /* Enable UART module clock */
     CLK_EnableModuleClock(UART0_MODULE);
 
-    /* Select UART module clock source as HXT `and UART module clock divider as 1 */
+    /* Select UART module clock source as HXT and UART module clock divider as 1 */
     CLK_SetModuleClock(UART0_MODULE, CLK_CLKSEL1_UART0SEL_HXT, CLK_CLKDIV0_UART0(1));
 
     /* Enable I2C0 peripheral clock */
@@ -181,7 +180,7 @@ void I2C0_Close(void)
 
 int32_t main(void)
 {
-    uint32_t u32i;
+    uint32_t u32i, u32TimeOutCnt;
 
     /* Unlock protected registers */
     SYS_UnlockReg();
@@ -237,9 +236,19 @@ int32_t main(void)
         I2C_SET_CONTROL_REG(I2C0, I2C_CTL_STA);
 
         /* Wait I2C Tx Finish */
-        while(g_u8MstEndFlag == 0);
+        u32TimeOutCnt = I2C_TIMEOUT;
+        while(g_u8MstEndFlag == 0)
+        {
+            if(--u32TimeOutCnt == 0)
+            {
+                printf("Wait for I2C Tx finish time-out!\n");
+                goto lexit;
+            }
+        }
     }
     printf("Master Access Slave(0x%X) at GC Mode Test OK\n", g_u8DeviceAddr);
+
+lexit:
 
     s_I2C0HandlerFn = NULL;
 

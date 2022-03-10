@@ -13,7 +13,7 @@
 /* Global Interface Variables Declarations                                                                 */
 /*---------------------------------------------------------------------------------------------------------*/
 extern void SRAM_BS616LV4017(uint32_t u32MaxSize);
-void AccessEBIWithPDMA(void);
+int32_t AccessEBIWithPDMA(void);
 
 void Configure_EBI_16BIT_Pins(void)
 {
@@ -154,15 +154,16 @@ int main(void)
     SRAM_BS616LV4017(512 * 1024);
 
     /* EBI SRAM with PDMA test */
-    AccessEBIWithPDMA();
+    if( AccessEBIWithPDMA() == 0 )
+    {
+        printf("*** SRAM Test OK ***\n");
+    }
 
     /* Disable EBI function */
     EBI_Close(EBI_BANK0);
 
     /* Disable EBI clock */
     CLK_DisableModuleClock(EBI_MODULE);
-
-    printf("*** SRAM Test OK ***\n");
 
     while(1) {}
 }
@@ -203,10 +204,11 @@ void PDMA0_IRQHandler(void)
         printf("unknown interrupt !!\n");
 }
 
-void AccessEBIWithPDMA(void)
+int32_t AccessEBIWithPDMA(void)
 {
     uint32_t i;
     uint32_t u32Result0 = 0x5A5A, u32Result1 = 0x5A5A;
+    uint32_t u32TimeOutCnt;
 
     printf("[[ Access EBI with PDMA ]]\n");
 
@@ -238,7 +240,15 @@ void AccessEBIWithPDMA(void)
 
     g_u32IsTestOver = 0;
     PDMA_Trigger(PDMA0, 2);
-    while(g_u32IsTestOver == 0) {}
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(g_u32IsTestOver == 0)
+    {
+        if(--u32TimeOutCnt == 0)
+        {
+            printf("Wait for PDMA time-out!\n");
+            return -1;
+        }
+    }
     /* Transfer internal SRAM to EBI SRAM done */
 
     /* Clear internal SRAM data */
@@ -254,7 +264,15 @@ void AccessEBIWithPDMA(void)
 
     g_u32IsTestOver = 0;
     PDMA_Trigger(PDMA0, 2);
-    while(g_u32IsTestOver == 0) {}
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(g_u32IsTestOver == 0)
+    {
+        if(--u32TimeOutCnt == 0)
+        {
+            printf("Wait for PDMA time-out!\n");
+            return -1;
+        }
+    }
     /* Transfer EBI SRAM to internal SRAM done */
     for(i = 0; i < 64; i++)
     {
@@ -270,16 +288,18 @@ void AccessEBIWithPDMA(void)
         else
         {
             printf("        FAIL - data matched (0x%X)\n\n", u32Result0);
-            while(1) {}
+            return -1;
         }
     }
     else
     {
         printf("        PDMA fail\n\n");
-        while(1) {}
+        return -1;
     }
 
     PDMA_Close(PDMA0);
+
+    return 0;
 }
 
 /*** (C) COPYRIGHT 2019 Nuvoton Technology Corp. ***/

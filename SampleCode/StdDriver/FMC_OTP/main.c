@@ -76,7 +76,7 @@ int32_t main(void)
     UART_Open(UART0, 115200);
 
     printf("+------------------------------------+\n");
-    printf("|   M261 FMC OTP Sample Demo        |\n");
+    printf("|   M261 FMC OTP Sample Demo         |\n");
     printf("+------------------------------------+\n");
 
     SYS_UnlockReg();                   /* Unlock protected registers */
@@ -91,18 +91,16 @@ int32_t main(void)
             goto lexit;
         }
 
-        if((u32OtpLw == 0xFFFFFFFF) && (u32OtpHw == 0xFFFFFFFF))
-        {
-            printf("OTP%d is 0xFFFFFFFF-0xFFFFFFFF. It should be a free entry.\n", u32i);
-            break;
-        }
+        printf("OTP%03d: 0x%08x 0x%08x (%s)\n", u32i, u32OtpLw, u32OtpHw, FMC_Is_OTP_Locked(u32i)?"LOCKED":"UNLOCKED");
     }
 
-    if(u32i == FMC_OTP_ENTRY_CNT)
-    {
-        printf("All OTP entries are used.\n");
+#if 0
+    /* NOTE:  Be careful! OTP cannot be erased. Any programming to OTP can not be recovered. */
+
+    printf("Ready to program OTP ...\n");
+    printf("Programming OTP is not recoverable. Are you sure? (y/n)\n");
+    if(getchar() != 'y')
         goto lexit;
-    }
 
     printf("Program OTP%d with 0x%x-0x%x...\n", u32i, 0x5A5A0000 | u32i, 0x00005A5A | u32i);
 
@@ -147,6 +145,7 @@ int32_t main(void)
         printf("OTP%d value is incorrect after locked!\n", u32i);
         goto lexit;
     }
+#endif
 
     printf("OTP demo done.\n");
 

@@ -121,7 +121,7 @@ int32_t main(void)
         if(u32Data != u32RData)
         {
             printf("[Read/Write FAIL]\n");
-            while(1);
+            return -1;
         }
     }
 

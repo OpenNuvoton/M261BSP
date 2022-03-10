@@ -124,7 +124,7 @@ void SysTick_Handler(void)
 
         default:
             printf("Unknown g_i8DbState state!\n");
-            while(1);
+            break;
     }
 }
 
@@ -136,7 +136,6 @@ void enable_sys_tick(int i8TicksPerSecond)
     {
         /* Setup SysTick Timer for 1 second interrupts  */
         printf("Set system tick error!!\n");
-        while(1);
     }
 }
 
@@ -257,7 +256,7 @@ void RecevieAndSendBack_Callback()
 void RecevieAndSendBack(E_UART_PORT u32Port)
 {
     uint32_t u32TestBR;
-
+    uint32_t u32TimeOutCnt;
     UART_T * tUART;
     tUART = (UART_T *)(UART0_BASE + u32Port);
 
@@ -300,7 +299,10 @@ void RecevieAndSendBack(E_UART_PORT u32Port)
 #endif
 
     /* setting before test */
-    UART_WAIT_TXEMPTYF_RXIDLE(DEBUG_PORT);
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    UART_WAIT_TXEMPTYF_RXIDLE(DEBUG_PORT)
+        if(--u32TimeOutCnt == 0) break;
+
     BackupCLKSetting();
     BackupUARTSetting(u32Port);
     UART_Init(tUART, UART_CLK_SRC_HXT, UART_CLK_DIV(1), 0);
@@ -327,7 +329,9 @@ void RecevieAndSendBack(E_UART_PORT u32Port)
     DrvUART_DisableInt(u32Port, DRVUART_RDAINT);
 
     /* end of test */
-    UART_WAIT_TXEMPTYF_RXIDLE(DEBUG_PORT);
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    UART_WAIT_TXEMPTYF_RXIDLE(DEBUG_PORT)
+        if(--u32TimeOutCnt == 0) break;
     UART_WAIT_TXEMPTYF_RXIDLE(tUART);
     RestoreCLKSetting();
     RestoreUARTSetting(u32Port);
@@ -343,6 +347,7 @@ int32_t main(void)
 
 
     uint32_t u32ch, u32i,  u32RoBase = 0x0, u32Sum = 0;
+    uint32_t u32TimeOutCnt;
     /* Unlock protected registers */
     SYS_UnlockReg();
 
@@ -465,7 +470,12 @@ int32_t main(void)
             /* Set VECMAP */
             FMC->ISPCMD = 0x2E;
             FMC->ISPTRG = 1;
-            while(FMC->ISPTRG);
+            u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+            while(FMC->ISPTRG)
+            {
+                if(--u32TimeOutCnt == 0)
+                    break;
+            }
             SYS->IPRST0 |= SYS_IPRST0_CPURST_Msk;
         }
     }

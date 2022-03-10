@@ -348,6 +348,7 @@ int main(void)
     uint32_t u32NeedReset = 0;
     uint32_t u32Cfg;
     uint8_t u8FailNuBL3x; /* Bit0 = 1: NuBL32 */
+    uint32_t u32TimeOutCnt;
 
     /* Unlock protected registers */
     SYS_UnlockReg();
@@ -360,7 +361,7 @@ int main(void)
 
     printf("\n\n[HCLK %d Hz] (%s, %s)\n", SystemCoreClock, __DATE__, __TIME__);
     printf("+------------------------------------+\n");
-    printf("|    M261 Secure OTA Sample Code    |\n");
+    printf("|    M261 Secure OTA Sample Code     |\n");
     printf("+------------------------------------+\n\n");
     CLK_SysTickDelay(200000);
 
@@ -437,7 +438,9 @@ int main(void)
 
     printf("\n[Executing in NuBL2] execute NuBL32 F/W on 0x%08x.\n", (uint32_t)NUBL32_FW_BASE);
 
-    while(!(UART_IS_TX_EMPTY(DEBUG_PORT)));
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(!(UART_IS_TX_EMPTY(DEBUG_PORT)))
+        if(--u32TimeOutCnt == 0) break;
 
     __set_PRIMASK(1); /* Disable all interrupt */
     FMC_SetVectorPageAddr(NUBL32_FW_BASE);
@@ -492,7 +495,9 @@ _VERIFY_FAIL:
     while(1) {}
 
 reset:
-    while(!(UART_IS_TX_EMPTY(DEBUG_PORT)));
+    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    while(!(UART_IS_TX_EMPTY(DEBUG_PORT)))
+        if(--u32TimeOutCnt == 0) break;
 
     /* Reset CPU only to reset to new vector page */
     SYS_ResetChip();

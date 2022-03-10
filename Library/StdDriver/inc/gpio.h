@@ -348,9 +348,12 @@ extern "C"
  *
  * @param[in]   port        GPIO port. It could be PA, PB, PC, PD, PE, PF, PG or PH.
  * @param[in]   u32PinMask  The single or multiple pins of specified GPIO port. \n
- *                          It could be BIT0 ~ BIT15 for PA, PB, PC, PD and PF. \n
- *                          It could be BIT0 ~ BIT13 for PE. \n
- *                          It could be BIT1 ~ BIT5, BIT7 ~ BIT12 for PG.
+ *                          It could be BIT0 ~ BIT15 for PA, PB and PE. \n
+ *                          It could be BIT0 ~ BIT13 for PC. \n
+ *                          It could be BIT0 ~ BIT14 for PD. \n
+ *                          It could be BIT0 ~ BIT11 for PF. \n
+ *                          It could be BIT2 ~ BIT3, BIT9 ~ BIT15 for PG. \n
+ *                          It could be BIT4 ~ BIT11 for PH.
  *
  * @return      None
  *
@@ -590,7 +593,7 @@ extern "C"
  *
  * @return      None
  *
- * @details     This function is used to enable specified GPIO pin interrupt.
+ * @details     This function is used to disable specified GPIO pin interrupt.
  */
 #define GPIO_DisableEINT    GPIO_DisableInt
 

@@ -92,7 +92,7 @@ void SPI_Init(void)
 /* ------------- */
 int main(void)
 {
-    uint32_t u32DataCount, u32TestCount, u32Err;
+    uint32_t u32DataCount, u32TestCount, u32Err, u32TimeOutCnt;
 
     /* Unlock protected registers */
     SYS_UnlockReg();
@@ -108,7 +108,7 @@ int main(void)
 
     printf("\n\n");
     printf("+--------------------------------------------------------------------+\n");
-    printf("|                    M261 SPI Driver Sample Code                    |\n");
+    printf("|                    M261 SPI Driver Sample Code                     |\n");
     printf("+--------------------------------------------------------------------+\n");
     printf("\n");
     printf("\nThis sample code demonstrates SPI0 self loop back data transfer.\n");
@@ -141,7 +141,15 @@ int main(void)
             /* Write to TX register */
             SPI_WRITE_TX(SPI0, g_au32SourceData[u32DataCount]);
             /* Check SPI0 busy status */
-            while(SPI_IS_BUSY(SPI0));
+            u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+            while(SPI_IS_BUSY(SPI0))
+            {
+                if(--u32TimeOutCnt == 0)
+                {
+                    printf("Wait for SPI time-out!\n");
+                    return -1;
+                }
+            }
             /* Read received data */
             g_au32DestinationData[u32DataCount] = SPI_READ_RX(SPI0);
             u32DataCount++;

@@ -1,5 +1,5 @@
 /**************************************************************************//**
- * @file     clk.c
+ * @file     my_clk.c
  * @version  V3.00
  * @brief    M261 series Clock Controller (CLK) driver source file
  *
@@ -15,6 +15,7 @@
   @{
 */
 
+int32_t g_CLK_i32ErrCode = 0;    /*!< CLK global error code */
 
 /** @addtogroup CLK_EXPORTED_FUNCTIONS CLK Exported Functions
   @{
@@ -297,7 +298,7 @@ uint32_t CLK_GetCPUFreq(void)
   *             The range of u32Hclk is 24 MHz ~ 64 MHz if power level is PL0.
   *             The range of u32Hclk is 24 MHz ~ 48 MHz if power level is PL1.
   * @return     HCLK frequency
-  * @details    This function is used to set HCLK frequency. The frequency unit is Hz. \n
+  * @details    This function is used to set HCLK frequency by using PLL. The frequency unit is Hz. \n
   *             The register write-protection function should be disabled before using this function.
   */
 uint32_t CLK_SetCoreClock(uint32_t u32Hclk)
@@ -607,7 +608,7 @@ void CLK_DisableXtalRC(uint32_t u32ClkMask)
 }
 
 /**
-  * @brief      This function enable module clock
+  * @brief      Enable module clock
   * @param[in]  u32ModuleIdx is module index. Including :
   *             - \ref PDMA0_MODULE
   *             - \ref PDMA1_MODULE
@@ -616,6 +617,7 @@ void CLK_DisableXtalRC(uint32_t u32ClkMask)
   *             - \ref SDH0_MODULE
   *             - \ref CRC_MODULE
   *             - \ref CRPT_MODULE
+  *             - \ref FMCIDLE_MODULE
   *             - \ref USBH_MODULE
   *             - \ref WDT_MODULE
   *             - \ref WWDT_MODULE
@@ -662,7 +664,7 @@ void CLK_DisableXtalRC(uint32_t u32ClkMask)
   *             - \ref ECAP0_MODULE
   *             - \ref ECAP1_MODULE
   * @return     None
-  * @details    This function enable module clock.
+  * @details    This function is used to enable module clock.
   */
 void CLK_EnableModuleClock(uint32_t u32ModuleIdx)
 {
@@ -676,7 +678,7 @@ void CLK_EnableModuleClock(uint32_t u32ModuleIdx)
 }
 
 /**
-  * @brief      This function disable module clock
+  * @brief      Disable module clock
   * @param[in]  u32ModuleIdx is module index
   *             - \ref PDMA0_MODULE
   *             - \ref PDMA1_MODULE
@@ -685,6 +687,7 @@ void CLK_EnableModuleClock(uint32_t u32ModuleIdx)
   *             - \ref SDH0_MODULE
   *             - \ref CRC_MODULE
   *             - \ref CRPT_MODULE
+  *             - \ref FMCIDLE_MODULE
   *             - \ref USBH_MODULE
   *             - \ref WDT_MODULE
   *             - \ref WWDT_MODULE
@@ -731,7 +734,7 @@ void CLK_EnableModuleClock(uint32_t u32ModuleIdx)
   *             - \ref ECAP0_MODULE
   *             - \ref ECAP1_MODULE
   * @return     None
-  * @details    This function disable module clock.
+  * @details    This function is used to disable module clock.
   */
 void CLK_DisableModuleClock(uint32_t u32ModuleIdx)
 {
@@ -761,7 +764,7 @@ uint32_t CLK_EnablePLL(uint32_t u32PllClkSrc, uint32_t u32PllFreq)
     uint32_t u32Tmp, u32Tmp2, u32Tmp3, u32Min, u32MinNF, u32MinNR;
 
     /* Disable PLL first to avoid unstable when setting PLL */
-    CLK_DisablePLL();
+    CLK->PLLCTL |= CLK_PLLCTL_PD_Msk;
 
     /* PLL source clock is from HXT */
     if(u32PllClkSrc == CLK_PLLCTL_PLLSRC_HXT)
@@ -815,19 +818,19 @@ uint32_t CLK_EnablePLL(uint32_t u32PllClkSrc, uint32_t u32PllFreq)
         u32NR = 3UL;
 
         /* Find best solution */
-        u32Min = (uint32_t) - 1;
+        u32Min = (uint32_t) - 1;    /* initial u32Min to max value of uint32_t (0xFFFFFFFF) */
         u32MinNR = 0UL;
         u32MinNF = 0UL;
 
-        for(; u32NR <= 32UL; u32NR++)
+        for(; u32NR <= 32UL; u32NR++)   /* max NR = 32 since NR = INDIV+1 and INDIV = 0~31 */
         {
-            u32Tmp = u32PllSrcClk / u32NR;
-            if((u32Tmp >= FREQ_2MHZ) && (u32Tmp <= FREQ_8MHZ))
+            u32Tmp = u32PllSrcClk / u32NR;                      /* FREF = FIN/NR */
+            if((u32Tmp >= FREQ_2MHZ) && (u32Tmp <= FREQ_8MHZ))  /* Constraint 2: 2MHz < FREF < 8MHz. */
             {
-                for(u32NF = 2UL; u32NF <= 513UL; u32NF++)
+                for(u32NF = 2UL; u32NF <= 513UL; u32NF++)       /* NF = 2~513 since NF = FBDIV+2 and FBDIV = 0~511 */
                 {
-                    u32Tmp2 = (u32Tmp * u32NF) << 1;
-                    if((u32Tmp2 >= FREQ_96MHZ) && (u32Tmp2 <= FREQ_200MHZ))
+                    u32Tmp2 = (u32Tmp * u32NF) << 1;                            /* FVCO = FREF*2*NF */
+                    if((u32Tmp2 >= FREQ_96MHZ) && (u32Tmp2 <= FREQ_200MHZ))     /* Constraint 3: 96MHz < FVCO < 200MHz */
                     {
                         u32Tmp3 = (u32Tmp2 > u32PllFreq) ? u32Tmp2 - u32PllFreq : u32PllFreq - u32Tmp2;
                         if(u32Tmp3 < u32Min)
@@ -848,9 +851,12 @@ uint32_t CLK_EnablePLL(uint32_t u32PllClkSrc, uint32_t u32PllFreq)
         }
 
         /* Enable and apply new PLL setting. */
-        CLK->PLLCTL = u32PllClkSrc | (u32NO << 14) | ((u32MinNR - 1UL) << 9) | (u32MinNF - 2UL);
+        CLK->PLLCTL = u32PllClkSrc |
+                      (u32NO << CLK_PLLCTL_OUTDIV_Pos) |
+                      ((u32MinNR - 1UL) << CLK_PLLCTL_INDIV_Pos) |
+                      ((u32MinNF - 2UL) << CLK_PLLCTL_FBDIV_Pos);
 
-        /* Actual PLL output clock frequency */
+        /* Actual PLL output clock frequency. FOUT = (FIN/NR)*2*NF*(1/NO) */
         u32PllClk = u32PllSrcClk / ((u32NO + 1UL) * u32MinNR) * (u32MinNF << 1);
 
     }
@@ -912,17 +918,20 @@ void CLK_DisablePLL(void)
   *             - \ref CLK_STATUS_LIRC32STB_Msk
   * @retval     0  clock is not stable
   * @retval     1  clock is stable
-  * @details    To wait for clock ready by specified clock source stable flag or timeout (~300ms)
+  * @details    To wait for clock ready by specified clock source stable flag or timeout (>250ms)
+  * @note       This function sets g_CLK_i32ErrCode to CLK_TIMEOUT_ERR if clock source status is not stable.
   */
 uint32_t CLK_WaitClockReady(uint32_t u32ClkMask)
 {
-    int32_t i32TimeOutCnt = 2400000;
+    uint32_t u32TimeOutCnt = SystemCoreClock>>2; /* 250ms time-out */
     uint32_t u32Ret = 1U;
 
+    g_CLK_i32ErrCode = 0;
     while((CLK->STATUS & u32ClkMask) != u32ClkMask)
     {
-        if(i32TimeOutCnt-- <= 0)
+        if(--u32TimeOutCnt == 0)
         {
+            g_CLK_i32ErrCode = CLK_TIMEOUT_ERR;
             u32Ret = 0U;
             break;
         }
@@ -952,11 +961,16 @@ void CLK_EnableSysTick(uint32_t u32ClkSrc, uint32_t u32Count)
     /* Set System Tick clock source */
     if(u32ClkSrc == CLK_CLKSEL0_STCLKSEL_HCLK)
     {
+        /* Select System Tick clock source from core clock */
         SysTick->CTRL |= SysTick_CTRL_CLKSOURCE_Msk;
     }
     else
     {
+        /* Select System Tick external reference clock source */
         CLK->CLKSEL0 = (CLK->CLKSEL0 & ~CLK_CLKSEL0_STCLKSEL_Msk) | u32ClkSrc;
+
+        /* Select System Tick clock source from external reference clock */
+        SysTick->CTRL &= ~SysTick_CTRL_CLKSOURCE_Msk;
     }
 
     /* Set System Tick reload value */
