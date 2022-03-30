@@ -574,7 +574,7 @@ int32_t main(void)
     g_u32IsTestOver = 0;
 
     /* Waiting for I2C bus become free */
-    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    u32TimeOutCnt = I2C_TIMEOUT;
     while((I2C1->STATUS1 & I2C_STATUS1_ONBUSY_Msk) == I2C_STATUS1_ONBUSY_Msk)
     {
         if(--u32TimeOutCnt == 0)
@@ -609,7 +609,7 @@ int32_t main(void)
 
     /* Send START condition, start the PDMA data receive */
     I2C_START(I2C1);
-    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    u32TimeOutCnt = I2C_TIMEOUT;
     while(g_u8MstTxSLA == 0)
     {
         if(--u32TimeOutCnt == 0)
@@ -642,12 +642,12 @@ int32_t main(void)
     g_u32IsTestOver = 0;
 
     /* Check Receive data ending */
-    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    u32TimeOutCnt = I2C_TIMEOUT;
     while(g_u8MstEndFlag == 0)
     {
         if(--u32TimeOutCnt == 0)
         {
-            printf("Wait for I2C receive data endingt ime-out!\n");
+            printf("Wait for I2C receive data ending ime-out!\n");
             u32Err = 1;
             goto lexit;
         }
