@@ -223,7 +223,7 @@ void SYS_Init(void)
     /* Enable UART module clock */
     CLK_EnableModuleClock(UART0_MODULE);
 
-    /* Select UART module clock source as HXT `and UART module clock divider as 1 */
+    /* Select UART module clock source as HXT and UART module clock divider as 1 */
     CLK_SetModuleClock(UART0_MODULE, CLK_CLKSEL1_UART0SEL_HXT, CLK_CLKDIV0_UART0(1));
 
     /* Enable UI2C0 peripheral clock */
@@ -321,7 +321,7 @@ int main(void)
             if(--u32TimeOutCnt == 0)
             {
                 printf("Wait for USCI_I2C Tx finish time-out!\n");
-                return -1;
+                goto lexit;
             }
         }
         g_u8EndFlagM = 0;
@@ -342,7 +342,7 @@ int main(void)
             if(--u32TimeOutCnt == 0)
             {
                 printf("Wait for USCI_I2C Rx finish time-out!\n");
-                return -1;
+                goto lexit;
             }
         }
         g_u8EndFlagM = 0;
@@ -351,11 +351,13 @@ int main(void)
         if(g_u8RxData != g_au8TxData[2])
         {
             printf("USCI_I2C Byte Write/Read Failed, Data 0x%x\n", g_u8RxData);
-            return -1;
+            goto lexit;
         }
     }
 
     printf("\nUSCI_I2C Access EEPROM Test OK\n");
+
+lexit:
 
     while(1);
 }

@@ -22,28 +22,28 @@ volatile uint32_t g_u32RTCTickINT=0;
 
 void PowerDownFunction(void)
 {
- 
+
     /* Select SPD Power-down mode */
-    CLK_SetPowerDownMode(CLK_PMUCTL_PDMSEL_SPD);        
+    CLK_SetPowerDownMode(CLK_PMUCTL_PDMSEL_SPD);
 
     /* Set the processor uses deep sleep as its low power mode */
     SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
 
     /* Set system Power-down enabled */
-    CLK->PWRCTL |= CLK_PWRCTL_PDEN_Msk;         
-    
-    /* Reserve R0-R7, LR and enter to Power-down mode */        
+    CLK->PWRCTL |= CLK_PWRCTL_PDEN_Msk;
+
+    /* Reserve R0-R7, LR and enter to Power-down mode */
     __set_PRIMASK(1);
     __ASM volatile("push {r0-r7} \n");
     __ASM volatile("push {lr} \n");
-    __Enter_SPD();  
+    __Enter_SPD();
 
     /* Restore R0-R7 and LR */
-    __ASM volatile("pop {r0} \n");     
-    __ASM volatile("mov lr, r0 \n");      
-    __ASM volatile("pop {r0-r7} \n");  
-    __set_PRIMASK(0);      
-    
+    __ASM volatile("pop {r0} \n");
+    __ASM volatile("mov lr, r0 \n");
+    __ASM volatile("pop {r0-r7} \n");
+    __set_PRIMASK(0);
+
     /* Initialization after wake-up from SPD */
     if(CLK->PMUSTS&CLK_PMUSTS_RTCWK_Msk)
     {
@@ -197,7 +197,7 @@ void UART0_Init(void)
 
 int main( void )
 {
-     S_RTC_TIME_DATA_T sReadRTC; 
+    S_RTC_TIME_DATA_T sReadRTC;
     uint32_t u32TimeOutCnt;
 
     /* Unlock protected registers */
@@ -211,7 +211,7 @@ int main( void )
 
     /* Init UART0 for printf */
     UART0_Init();
-    
+
     /* LED toggle in RTC interrupt */
     GPIO_SetMode(PA, BIT10, GPIO_MODE_OUTPUT);
 
@@ -224,7 +224,7 @@ int main( void )
     printf("+--------------------------------------------------------+\n");
 
     /* Init RTC */
-    if( RTC_Init() < 0 ) return -1;
+    if( RTC_Init() < 0 ) goto lexit;
 
     while(1)
     {
@@ -267,6 +267,9 @@ int main( void )
 
     }
 
+lexit:
+
+    while(1);
 }
 
 /*** (C) COPYRIGHT 2019 Nuvoton Technology Corp. ***/

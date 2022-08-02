@@ -161,7 +161,7 @@ int main(void)
     if(XECC_GeneratePublicKey(XCRPT, ECC_CURVE_TYPE, d, Qx, Qy) < 0)
     {
         printf("ECC key generation failed!!\n");
-        return -1;
+        goto lexit;
     }
     i32Ticks = 0xffffff - SysTick->VAL;
     printf("Pub Key    Ax = %s\n", Qx);
@@ -179,7 +179,7 @@ int main(void)
     if(XECC_GeneratePublicKey(XCRPT, ECC_CURVE_TYPE, d2, Qx2, Qy2) < 0)
     {
         printf("ECC key generation failed!!\n");
-        return -1;
+        goto lexit;
     }
     i32Ticks = 0xffffff - SysTick->VAL;
     printf("Pub Key     Bx = %s\n", Qx2);
@@ -191,7 +191,7 @@ int main(void)
     if(XECC_GenerateSecretZ(XCRPT, ECC_CURVE_TYPE, d, Qx2, Qy2, k) < 0)
     {
         printf("ECC ECDH share key calculation fail!!\n");
-        return -1;
+        goto lexit;
     }
     printf("Share key calculated by A = %s\n", k);
 
@@ -199,7 +199,7 @@ int main(void)
     if(XECC_GenerateSecretZ(XCRPT, ECC_CURVE_TYPE, d2, Qx, Qy, k2) < 0)
     {
         printf("ECC ECDH share key calculation fail!!\n");
-        while(1) {}
+        goto lexit;
     }
     printf("Share key calculated by B = %s\n", k2);
 
@@ -211,6 +211,8 @@ int main(void)
     {
         printf("Share key match. Test OK\n");
     }
+
+lexit:
 
     while(1) {}
 }

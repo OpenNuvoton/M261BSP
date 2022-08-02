@@ -82,7 +82,7 @@ uint32_t g_au32piTbl[19] =
     6284
 };
 
-int32_t g_qi32piResult[19];
+int32_t g_ai32piResult[19];
 
 int32_t pi(void)
 {
@@ -93,7 +93,7 @@ int32_t pi(void)
         g_ai32f[b++] = a / 5;
 
     i = 0;
-    for(; d = 0, g = c * 2; c -= 14, g_qi32piResult[i++] = e + d / a, e = d % a)
+    for(; d = 0, g = c * 2; c -= 14, g_ai32piResult[i++] = e + d / a, e = d % a)
     {
         if(i == 19)
             break;
@@ -103,7 +103,7 @@ int32_t pi(void)
     i32Err = 0;
     for(i = 0; i < 19; i++)
     {
-        if(g_au32piTbl[i] != g_qi32piResult[i])
+        if(g_au32piTbl[i] != g_ai32piResult[i])
             i32Err = -1;
     }
 

@@ -100,9 +100,9 @@ uint32_t ProcessHardFault(uint32_t lr, uint32_t msp, uint32_t psp)
             sp = (uint32_t *)psp;
         else
             sp = (uint32_t *)msp;
-    
+
     }
-#if defined (__ARM_FEATURE_CMSE) &&  (__ARM_FEATURE_CMSE == 3U)    
+#if defined (__ARM_FEATURE_CMSE) &&  (__ARM_FEATURE_CMSE == 3U)
     else
     {
         /* Non-secure stack used */
@@ -211,7 +211,7 @@ uint32_t ProcessHardFault(uint32_t lr, uint32_t msp, uint32_t psp)
         }
 
     }
-#if defined (__ARM_FEATURE_CMSE) &&  (__ARM_FEATURE_CMSE == 3)    
+#if defined (__ARM_FEATURE_CMSE) &&  (__ARM_FEATURE_CMSE == 3)
     else
     {
         /* Non-secure stack used */
@@ -219,10 +219,10 @@ uint32_t ProcessHardFault(uint32_t lr, uint32_t msp, uint32_t psp)
             sp = (uint32_t *)__TZ_get_PSP_NS();
         else
             sp = (uint32_t *)__TZ_get_MSP_NS();
-    
+
     }
-#endif    
-    
+#endif
+
     /*
     printf("  HardFault!\n\n");
     printf("r0  = 0x%x\n", sp[0]);

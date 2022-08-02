@@ -120,7 +120,7 @@ void SYS_Init(void)
     /* Waiting for HIRC clock ready */
     CLK_WaitClockReady(CLK_STATUS_HIRCSTB_Msk);
 
-    /* Select HCLK clock source as HIRC and and HCLK clock divider as 1 */
+    /* Select HCLK clock source as HIRC and HCLK clock divider as 1 */
     CLK_SetHCLK(CLK_CLKSEL0_HCLKSEL_HIRC, CLK_CLKDIV0_HCLK(1));
 
     /* Enable HXT clock (external XTAL 12MHz) */
@@ -318,13 +318,13 @@ int32_t main(void)
             if(--u32TimeOutCnt == 0)
             {
                 printf("Wait for EPWM1 channel 2 Timer start time-out!\n");
-                return -1;
+                goto lexit;
             }
         }
 
         /* Capture the Input Waveform Data */
         if( CalPeriodTime(EPWM1, 2) < 0 )
-            return -1;
+            goto lexit;
         /*------------------------------------------------------------------------------------------------------------*/
         /* Stop EPWM1 channel 0 (Recommended procedure method 1)                                                      */
         /* Set EPWM Timer loaded value(Period) as 0. When EPWM internal counter(CNT) reaches to 0, disable EPWM Timer */
@@ -340,7 +340,7 @@ int32_t main(void)
             if(--u32TimeOutCnt == 0)
             {
                 printf("Wait for EPWM1 channel 0 Timer stop time-out!\n");
-                return -1;
+                goto lexit;
             }
         }
 
@@ -365,14 +365,14 @@ int32_t main(void)
             if(--u32TimeOutCnt == 0)
             {
                 printf("Wait for EPWM1 channel 2 current counter reach to 0 time-out!\n");
-                return -1;
+                goto lexit;
             }
         }
 
         /* Disable Timer for EPWM1 channel 2 */
         EPWM_ForceStop(EPWM1, EPWM_CH_2_MASK);
 
-        /* Disable Capture Function and Capture Input path for  EPWM1 channel 2 */
+        /* Disable Capture Function and Capture Input path for EPWM1 channel 2 */
         EPWM_DisableCapture(EPWM1, EPWM_CH_2_MASK);
 
         /* Clear Capture Interrupt flag for EPWM1 channel 2 */
@@ -384,6 +384,10 @@ int32_t main(void)
         /* Close PDMA */
         PDMA_Close(PDMA0);
     }
+
+lexit:
+
+    while(1);
 }
 
 /*** (C) COPYRIGHT 2019 Nuvoton Technology Corp. ***/

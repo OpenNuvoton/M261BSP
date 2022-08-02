@@ -164,7 +164,7 @@ int32_t NuBL_AES256Decrypt(uint32_t *in, uint32_t *out, uint32_t len, uint32_t *
     u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
     while(CRPT->AES_STS & CRPT_AES_STS_BUSY_Msk)
     {
-        if( --u32TimeOutCnt != 0 )
+        if( --u32TimeOutCnt == 0 )
             return -1;
     }
 

@@ -165,7 +165,7 @@ int main(void)
         if(--u32TimeOutCnt == 0)
         {
             printf("Wait for AES encrypt done time-out!\n");
-            return -1;
+            goto lexit;
         }
     }
 
@@ -188,12 +188,14 @@ int main(void)
         if(--u32TimeOutCnt == 0)
         {
             printf("Wait for AES decrypt done time-out!\n");
-            return -1;
+            goto lexit;
         }
     }
 
     printf("AES decrypt done.\n\n");
     dump_buff_hex(g_au8InputData, sizeof(g_au8InputData));
+
+lexit:
 
     while(1) {}
 }

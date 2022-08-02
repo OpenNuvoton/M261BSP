@@ -51,7 +51,7 @@ void UART1_IRQHandler(void)
 void RS485_HANDLE(void)
 {
     volatile uint32_t u32Addr = 0;
-    volatile uint32_t u32IntSts = UART1->INTSTS;;
+    volatile uint32_t u32IntSts = UART1->INTSTS;
 
     if((u32IntSts & UART_INTSTS_RLSINT_Msk) && (u32IntSts & UART_INTSTS_RDAINT_Msk))    /* RLS INT & RDA INT */
     {
@@ -93,7 +93,7 @@ void RS485_HANDLE(void)
 /*---------------------------------------------------------------------------------------------------------*/
 /*  RS485 Receive Test  (IS_USE_RS485NMM: 0:AAD  1:NMM)                                                    */
 /*---------------------------------------------------------------------------------------------------------*/
-void RS485_9bitModeSlave()
+void RS485_9bitModeSlave(void)
 {
     uint32_t u32TimeOutCnt;
 
@@ -255,8 +255,8 @@ void RS485_FunctionTest()
     printf("+-----------------------------------------------------------+\n");
     printf("|  ______                                            _____  |\n");
     printf("| |      |                                          |     | |\n");
-    printf("| |Master|--UART1_TXD(PB.7)  <==>  UART1_RXD(PB.6)--|Slave| |\n");
-    printf("| |      |--UART1_nRTS(PB.8) <==> UART1_nRTS(PB.8)--|     | |\n");
+    printf("| |Master|--UART1_TXD(PB.7)        UART1_RXD(PB.6)--|Slave| |\n");
+    printf("| |      |--UART1_nRTS(PB.8)      UART1_nRTS(PB.8)--|     | |\n");
     printf("| |______|                                          |_____| |\n");
     printf("|                                                           |\n");
     printf("+-----------------------------------------------------------+\n");

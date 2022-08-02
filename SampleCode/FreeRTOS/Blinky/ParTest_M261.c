@@ -116,7 +116,7 @@ void vParTestInitialise( void )
 
     /* Set multi-function pins for UART0 RXD and TXD */
     SYS->GPB_MFPH = (SYS->GPB_MFPH & (~(UART0_RXD_PB12_Msk | UART0_TXD_PB13_Msk))) | UART0_RXD_PB12 | UART0_TXD_PB13;
-    
+
     /* Configure Debug port */
     UART0->BAUD = UART_BAUD_MODE2 | UART_BAUD_MODE2_DIVIDER(__HIRC, 115200);
     UART0->LINE = UART_WORD_LEN_8 | UART_PARITY_NONE | UART_STOP_BIT_1;
@@ -144,7 +144,7 @@ void vParTestInitialise( void )
 
     
     printf("\b\b\b\b\b\b\n\nFreeRTOS ...\n");
-    
+
 }
 /*-----------------------------------------------------------*/
 
@@ -152,12 +152,12 @@ void vParTestSetLED( unsigned long ulLED, signed portBASE_TYPE xValue )
 {
     if( xValue == pdTRUE )
     {
-        /* Turn the LED on. */			
+        /* Turn the LED on. */
         PB10 = 0;
     }
     else
     {
-        /* Turn the LED off. */			
+        /* Turn the LED off. */
         PB10 = 1;
     }
 }

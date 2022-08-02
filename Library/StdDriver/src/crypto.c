@@ -1446,7 +1446,7 @@ int32_t  ECC_GenerateSignature(CRPT_T *crpt, E_ECC_CURVE ecc_curve, char *messag
 }
 
 /**
-  * @brief  ECDSA dogotal signature verification.
+  * @brief  ECDSA digital signature verification.
   * @param[in]  crpt        The pointer of CRYPTO module
   * @param[in]  ecc_curve   The pre-defined ECC curve.
   * @param[in]  message     The hash value of source context.
@@ -3476,9 +3476,6 @@ int32_t CurveCpy(unsigned int *p32, E_ECC_CURVE id)
 
 static ECC_CURVE * get_curve(E_ECC_CURVE ecc_curve)
 {
-    uint32_t   i;
-    ECC_CURVE  *ret = NULL;
-
     if(CurveCpy((unsigned int *)&Curve_Copy, ecc_curve))
         return NULL;
     else

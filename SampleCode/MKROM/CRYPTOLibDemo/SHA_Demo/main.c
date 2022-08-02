@@ -152,7 +152,7 @@ int main(void)
         if(--u32TimeOutCnt == 0)
         {
             printf("Wait for SHA done time-out!\n");
-            return -1;
+            goto lexit;
         }
     }
 
@@ -167,8 +167,10 @@ int main(void)
     if(do_compare((uint8_t *)&au32Output[0], (uint8_t *)&g_au32Expect[0], (256 / 8)) < 0)
     {
         printf("Compare error!\n");
-        return -1;
+        goto lexit;
     }
+
+lexit:
 
     while(1) {}
 }

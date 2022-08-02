@@ -222,7 +222,7 @@ int32_t main(void)
         if(ECC_GenerateSecretZ(CRPT, gPattern[p].curve, (char *)gPattern[p].d, (char *)gPattern[p].Qx, (char *)gPattern[p].Qy, gZ) < 0)
         {
             printf("ECC CDH secret Z generation failed!!\n");
-            return -1;
+            goto lexit;
         }
 
         /* truncate leading zeros                */
@@ -239,12 +239,14 @@ int32_t main(void)
                 if(pz[i] != pZ[i])
                     printf("%d - 0x%x 0x%x\n", i, pz[i], pZ[i]);
             }
-            return -1;
+            goto lexit;
         }
         printf("PASS.\n");
     }
 
     printf("ECC CDH all test pattern passed.\n");
+
+lexit:
 
     while(1);
 }

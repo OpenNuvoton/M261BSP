@@ -21,7 +21,7 @@
 /* Global variables                                                                                        */
 /*---------------------------------------------------------------------------------------------------------*/
 volatile int32_t g_i32Pointer;
-uint8_t g_u8SendData[12] ;
+uint8_t g_au8SendData[12] ;
 
 /*---------------------------------------------------------------------------------------------------------*/
 /* Define functions prototype                                                                              */
@@ -221,10 +221,10 @@ void LIN_MasterTestUsingLinCtlReg(uint32_t u32id, uint32_t u32ModeSel)
         LIN_SendHeaderUsingLinCtlReg(u32id, UART_LINCTL_HSEL_BREAK_SYNC);
         /* Fill test pattern to g_u8SendData[1]~ g_u8SendData[8] */
         for(u32Idx = 0; u32Idx < 8; u32Idx++)
-            g_u8SendData[g_i32Pointer++] = au8TestPattern[u32Idx];
+            g_au8SendData[g_i32Pointer++] = au8TestPattern[u32Idx];
         /* Compute checksum value with ID and fill checksum value to g_u8SendData[9] */
-        g_u8SendData[g_i32Pointer++] = ComputeChksumValue(&g_u8SendData[0], 9) ;
-        UART_Write(UART1, &g_u8SendData[1], 9);
+        g_au8SendData[g_i32Pointer++] = ComputeChksumValue(&g_au8SendData[0], 9) ;
+        UART_Write(UART1, &g_au8SendData[1], 9);
     }
 }
 
@@ -288,9 +288,9 @@ void LIN_SendHeader(uint32_t u32id)
     /* Set LIN operation mode, Tx mode and break field length is 12 bits */
     UART_SelectLINMode(UART1, UART_ALTCTL_LINTXEN_Msk, 11);
 
-    g_u8SendData[g_i32Pointer++] = 0x55 ;                   // SYNC Field
-    g_u8SendData[g_i32Pointer++] = GetParityValue(u32id);   // ID+Parity Field
-    UART_Write(UART1, g_u8SendData, 2);
+    g_au8SendData[g_i32Pointer++] = 0x55 ;                   // SYNC Field
+    g_au8SendData[g_i32Pointer++] = GetParityValue(u32id);   // ID+Parity Field
+    UART_Write(UART1, g_au8SendData, 2);
 }
 
 /*-------------------------------------------------------------------------------------------------------------------------------*/
@@ -351,8 +351,8 @@ void LIN_SendHeaderUsingLinCtlReg(uint32_t u32id, uint32_t u32HeaderSel)
         }
 
         /* Send ID field, g_u8SendData[0] is ID+parity field*/
-        g_u8SendData[g_i32Pointer++] = GetParityValue(u32id);   // ID+Parity Field
-        UART_Write(UART1, g_u8SendData, 1);
+        g_au8SendData[g_i32Pointer++] = GetParityValue(u32id);   // ID+Parity Field
+        UART_Write(UART1, g_au8SendData, 1);
     }
 
     /* Set LIN 1. Header select as includes "break field".[UART_LINCTL_HSEL_BREAK]
@@ -376,9 +376,9 @@ void LIN_SendHeaderUsingLinCtlReg(uint32_t u32id, uint32_t u32HeaderSel)
         }
 
         /* Send sync field and ID field*/
-        g_u8SendData[g_i32Pointer++] = 0x55 ;                  // SYNC Field
-        g_u8SendData[g_i32Pointer++] = GetParityValue(u32id);   // ID+Parity Field
-        UART_Write(UART1, g_u8SendData, 2);
+        g_au8SendData[g_i32Pointer++] = 0x55 ;                  // SYNC Field
+        g_au8SendData[g_i32Pointer++] = GetParityValue(u32id);   // ID+Parity Field
+        UART_Write(UART1, g_au8SendData, 2);
     }
 }
 
@@ -390,11 +390,11 @@ void LIN_SendResponse(int32_t checkSumOption, uint32_t *pu32TxBuf)
     int32_t i32Idx;
 
     for(i32Idx = 0; i32Idx < 8; i32Idx++)
-        g_u8SendData[g_i32Pointer++] = pu32TxBuf[i32Idx] ;
+        g_au8SendData[g_i32Pointer++] = pu32TxBuf[i32Idx] ;
 
-    g_u8SendData[g_i32Pointer++] = GetCheckSumValue(g_u8SendData, checkSumOption) ; //CheckSum Field
+    g_au8SendData[g_i32Pointer++] = GetCheckSumValue(g_au8SendData, checkSumOption) ; //CheckSum Field
 
-    UART_Write(UART1, g_u8SendData + 2, 9);
+    UART_Write(UART1, g_au8SendData + 2, 9);
 }
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -406,16 +406,16 @@ void LIN_SendResponseWithByteCnt(int32_t checkSumOption, uint32_t *pu32TxBuf, ui
 
     /* Prepare data */
     for(i32Idx = 0; i32Idx < u32ByteCnt; i32Idx++)
-        g_u8SendData[g_i32Pointer++] = pu32TxBuf[i32Idx] ;
+        g_au8SendData[g_i32Pointer++] = pu32TxBuf[i32Idx] ;
 
     /* Prepare check sum */
     if(checkSumOption == MODE_CLASSIC)
-        g_u8SendData[g_i32Pointer++] = GetCheckSumValue(&g_u8SendData[2], u32ByteCnt) ;  //CheckSum Field
+        g_au8SendData[g_i32Pointer++] = GetCheckSumValue(&g_au8SendData[2], u32ByteCnt) ;  //CheckSum Field
     else if(checkSumOption == MODE_ENHANCED)
-        g_u8SendData[g_i32Pointer++] = GetCheckSumValue(&g_u8SendData[1], (u32ByteCnt + 1)) ; //CheckSum Field
+        g_au8SendData[g_i32Pointer++] = GetCheckSumValue(&g_au8SendData[1], (u32ByteCnt + 1)) ; //CheckSum Field
 
     /* Send data and check sum */
-    UART_Write(UART1, g_u8SendData + 2, 9);
+    UART_Write(UART1, g_au8SendData + 2, 9);
 }
 
 

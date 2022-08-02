@@ -150,7 +150,7 @@ int32_t main(void)
     if (g_FMC_i32ErrCode != 0)
     {
         printf("FMC_SetVectorPageAddr failed!\n");
-        return -1;
+        goto lexit;
     }
 
     /* Reset CPU only to reset to new vector page */
@@ -158,6 +158,8 @@ int32_t main(void)
 
     /* Reset System to reset to new vector page. */
     //NVIC_SystemReset();
+
+lexit:
 
     while(1);
 

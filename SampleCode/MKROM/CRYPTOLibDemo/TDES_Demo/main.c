@@ -166,7 +166,7 @@ int main(void)
         if(--u32TimeOutCnt == 0)
         {
             printf("Wait for TDES encrypt done time-out!\n");
-            return -1;
+            goto lexit;
         }
     }
 
@@ -189,12 +189,14 @@ int main(void)
         if(--u32TimeOutCnt == 0)
         {
             printf("Wait for TDES decrypt done time-out!\n");
-            return -1;
+            goto lexit;
         }
     }
 
     printf("TDES decrypt done.\n\n");
     dump_buff_hex(g_au8InputData, sizeof(g_au8InputData));
+
+lexit:
 
     while(1) {}
 }

@@ -146,7 +146,7 @@ int32_t main(void)
         if(--u32TimeOutCnt == 0)
         {
             printf("Wait for PDMA time-out!\n");
-            return -1;
+            goto lexit;
         }
     }
 
@@ -161,6 +161,8 @@ int32_t main(void)
     }
 
     printf("\n\nExit I2S sample code.\n");
+
+lexit:
 
     while(1);
 

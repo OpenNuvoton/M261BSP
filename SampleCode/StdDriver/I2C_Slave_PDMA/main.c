@@ -392,7 +392,7 @@ int32_t I2C_Write_to_Slave_PDMA_RX(uint8_t u8SlvAddr)
     I2C_START(I2C0);
 
     /* Wait I2C0 Tx Finish */
-    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    u32TimeOutCnt = I2C_TIMEOUT;
     while(g_u8MstEndFlag == 0)
     {
         if(--u32TimeOutCnt == 0)
@@ -404,7 +404,7 @@ int32_t I2C_Write_to_Slave_PDMA_RX(uint8_t u8SlvAddr)
     g_u8MstEndFlag = 0;
 
     /* Waiting for I2C0 bus become free */
-    u32TimeOutCnt = SystemCoreClock; /* 1 second time-out */
+    u32TimeOutCnt = I2C_TIMEOUT;
     while((I2C0->STATUS1 & I2C_STATUS1_ONBUSY_Msk) ==  I2C_STATUS1_ONBUSY_Msk)
     {
         if(--u32TimeOutCnt == 0)
