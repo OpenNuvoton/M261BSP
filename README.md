@@ -74,10 +74,6 @@ This BSP folder
 
 ## .\ThirdParty\
 
-
-- emWin<br>
-	Segger embedded graphic library.
-
 - FatFs<br>
 	An open source FAT/exFAT filesystem library.
 
