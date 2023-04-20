@@ -1,0 +1,20 @@
+#For IAR
+Release/
+Debug/
+settings/
+
+#For KEIL
+obj/
+lst/
+Objects/
+Listings/
+Output/
+
+#For others
+MyCode/
+.vs/
+out/
+*.uvguix.*
+*.uvgui.*
+*.map
+*.dep
