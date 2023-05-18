@@ -624,8 +624,6 @@ __attribute__( ( weak ) ) void vPortSuppressTicksAndSleep( TickType_t xExpectedI
         if( ( portNVIC_SYSTICK_CTRL_REG & portNVIC_SYSTICK_COUNT_FLAG_BIT ) != 0 )
         {
             uint32_t ulCalculatedLoadValue;
-                
-            printf("warning go here\n");
 
             /* The tick interrupt is already pending, and the SysTick count
                 * reloaded with ulReloadValue.  Reset the
@@ -647,22 +645,6 @@ __attribute__( ( weak ) ) void vPortSuppressTicksAndSleep( TickType_t xExpectedI
                 * function exits, the tick value maintained by the tick is stepped
                 * forward by one less than the time spent waiting. */
             ulCompleteTickPeriods = xExpectedIdleTime - 1UL;
-        }
-        else
-        {
-            /* Something other than the tick interrupt ended the sleep.
-                * Work out how long the sleep lasted rounded to complete tick
-                * periods (not the ulReload value which accounted for part
-                * ticks). */
-            //ulCompletedSysTickDecrements = ( xExpectedIdleTime * ulTimerCountsForOneTick ) - portNVIC_SYSTICK_CURRENT_VALUE_REG;
-
-            /* How many complete tick periods passed while the processor
-                * was waiting? */
-            //ulCompleteTickPeriods = ulCompletedSysTickDecrements / ulTimerCountsForOneTick;
-
-            /* The reload value is set to whatever fraction of a single tick
-                * period remains. */
-            //portNVIC_SYSTICK_LOAD_REG = ( ( ulCompleteTickPeriods + 1UL ) * ulTimerCountsForOneTick ) - ulCompletedSysTickDecrements;
         }
 
         /* Restart SysTick so it runs from portNVIC_SYSTICK_LOAD_REG

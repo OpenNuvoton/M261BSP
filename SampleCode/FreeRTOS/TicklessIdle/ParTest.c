@@ -202,7 +202,7 @@ void vParTestInitialise(void)
     SET_UART0_RXD_PB12();
     SET_UART0_TXD_PB13();
 
-    /* Set PC multi-function pins for CLKO(PD.12) */
+    /* Set PD multi-function pins for CLKO(PD.12) */
     SET_CLKO_PD12();
 
     /* Output selected clock to CKO, CKO Clock = HCLK / 2^(5 + 1) */
