@@ -17,23 +17,34 @@
 
 #define CLK_PLLCTL_192MHz_HXT   (CLK_PLLCTL_PLLSRC_HXT  | CLK_PLLCTL_NR(2) | CLK_PLLCTL_NF( 16) | CLK_PLLCTL_NO_1)
 
-char g_achLine[64];             /* Console input buffer */
+static char s_achLine[64];             /* Console input buffer */
 
 static volatile int  g_i8RxReady = 0;
 
 extern int kbhit(void);                        /* function in retarget.c                 */
 
-volatile uint32_t  g_u32TickCnt;
+static volatile uint32_t  s_u32TickCnt;
+
+void SysTick_Handler(void);
+void enable_sys_tick(int ticks_per_second);
+void  dump_buff_hex(uint8_t *pu8Buff, int i8Bytes);
+void  vcom_status_callback(CDC_DEV_T *cdev, uint8_t *pu8RData, int u8DataLen);
+void  vcom_rx_callback(CDC_DEV_T *cdev, uint8_t *pu8RData, int u8DataLen);
+void show_line_coding(LINE_CODING_T *lc);
+int  init_cdc_device(CDC_DEV_T *cdev);
+void SYS_Init(void);
+void UART0_Init(void);
+
 
 void SysTick_Handler(void)
 {
-    g_u32TickCnt++;
+    s_u32TickCnt++;
 }
 
 void enable_sys_tick(int ticks_per_second)
 {
-    g_u32TickCnt = 0;
-    if(SysTick_Config(SystemCoreClock / ticks_per_second))
+    s_u32TickCnt = 0;
+    if(SysTick_Config(SystemCoreClock / (uint32_t)ticks_per_second))
     {
         /* Setup SysTick Timer for 1 second interrupts  */
         printf("Set system tick error!!\n");
@@ -43,7 +54,7 @@ void enable_sys_tick(int ticks_per_second)
 
 uint32_t get_ticks()
 {
-    return g_u32TickCnt;
+    return s_u32TickCnt;
 }
 
 /*
@@ -87,6 +98,8 @@ void  dump_buff_hex(uint8_t *pu8Buff, int i8Bytes)
 void  vcom_status_callback(CDC_DEV_T *cdev, uint8_t *pu8RData, int u8DataLen)
 {
     int  i8Cnt;
+	  
+    (void)cdev;
     printf("[VCOM STS] ");
     for(i8Cnt = 0; i8Cnt < u8DataLen; i8Cnt++)
         printf("0x%02x ", pu8RData[i8Cnt]);
@@ -96,6 +109,7 @@ void  vcom_status_callback(CDC_DEV_T *cdev, uint8_t *pu8RData, int u8DataLen)
 void  vcom_rx_callback(CDC_DEV_T *cdev, uint8_t *pu8RData, int u8DataLen)
 {
     int  i8Cnt;
+    (void)cdev; 
 
     //printf("[VCOM DATA %d] ", u8DataLen);
     for(i8Cnt = 0; i8Cnt < u8DataLen; i8Cnt++)
@@ -294,7 +308,7 @@ int32_t main(void)
 
     printf("\n");
     printf("+----------------------------------------------------------+\n");
-    printf("|            M261 USB Host VCOM sample program            |\n");
+    printf("|             M261 USB Host VCOM sample program            |\n");
     printf("+----------------------------------------------------------+\n");
     printf("|   (NOTE: This sample supports only one CDC device, but   |\n");
     printf("|          driver supports multiple CDC devices. If you    |\n");
@@ -343,8 +357,8 @@ int32_t main(void)
          */
         if(kbhit() == 0)
         {
-            g_achLine[0] = getchar();
-            i8Ret = usbh_cdc_send_data(cdev, (uint8_t *)g_achLine, 1);
+            s_achLine[0] = (char)getchar();
+            i8Ret = usbh_cdc_send_data(cdev, (uint8_t *)s_achLine, 1);
             if(i8Ret != 0)
                 printf("\n!! Send data failed, 0x%x!\n", i8Ret);
         }

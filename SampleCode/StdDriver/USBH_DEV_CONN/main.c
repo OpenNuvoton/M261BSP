@@ -19,17 +19,24 @@
 
 #define CLK_PLLCTL_192MHz_HXT   (CLK_PLLCTL_PLLSRC_HXT  | CLK_PLLCTL_NR(2) | CLK_PLLCTL_NF( 16) | CLK_PLLCTL_NO_1)
 
-volatile uint32_t  g_u32TickCnt;
+static volatile uint32_t  s_u32TickCnt;
+void SysTick_Handler(void);
+void enable_sys_tick(int ticks_per_second);
+void  connect_func(struct udev_t *udev, int i8Param);
+void  disconnect_func(struct udev_t *udev, int i8Param);
+void SYS_Init(void);
+void UART0_Init(void);
+
 
 void SysTick_Handler(void)
 {
-    g_u32TickCnt++;
+    s_u32TickCnt++;
 }
 
 void enable_sys_tick(int ticks_per_second)
 {
-    g_u32TickCnt = 0;
-    if(SysTick_Config(SystemCoreClock / ticks_per_second))
+    s_u32TickCnt = 0;
+    if(SysTick_Config(SystemCoreClock / (uint32_t)ticks_per_second))
     {
         /* Setup SysTick Timer for 1 second interrupts  */
         printf("Set system tick error!!\n");
@@ -39,7 +46,7 @@ void enable_sys_tick(int ticks_per_second)
 
 uint32_t get_ticks()
 {
-    return g_u32TickCnt;
+    return s_u32TickCnt;
 }
 
 /*
@@ -54,6 +61,7 @@ void  connect_func(struct udev_t *udev, int i8Param)
     struct hub_dev_t *parent;
     int    i8Cnt;
 
+    (void)i8Param;
     parent = udev->parent;
 
     printf("Device [0x%x,0x%x] was connected.\n",
@@ -97,6 +105,7 @@ void  connect_func(struct udev_t *udev, int i8Param)
  */
 void  disconnect_func(struct udev_t *udev, int i8Param)
 {
+    (void)i8Param;
     printf("Device [0x%x,0x%x] was disconnected.\n",
            udev->descriptor.idVendor, udev->descriptor.idProduct);
 }

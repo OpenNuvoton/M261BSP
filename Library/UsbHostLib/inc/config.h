@@ -4,7 +4,6 @@
  * @brief    This header file defines the configuration of USB Host library.
  * @note
  * SPDX-License-Identifier: Apache-2.0
- *
  * Copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
  *****************************************************************************/
 

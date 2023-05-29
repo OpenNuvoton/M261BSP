@@ -5,7 +5,6 @@
  *
  * @note
  * SPDX-License-Identifier: Apache-2.0
- *
  * Copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 
@@ -173,25 +172,25 @@ int  alloc_dev_address(void)
 {
     _device_addr++;
 
-    if (_device_addr >= 128)
+    if(_device_addr >= 128)
         _device_addr = 1;
 
-    while (1)
+    while(1)
     {
-        if (_dev_addr_pool[_device_addr] == 0)
+        if(_dev_addr_pool[_device_addr] == 0)
         {
             _dev_addr_pool[_device_addr] = 1;
             return _device_addr;
         }
         _device_addr++;
-        if (_device_addr >= 128)
+        if(_device_addr >= 128)
             _device_addr = 1;
     }
 }
 
 void  free_dev_address(int dev_addr)
 {
-    if (dev_addr < 128)
+    if(dev_addr < 128)
         _dev_addr_pool[dev_addr] = 0;
 }
 

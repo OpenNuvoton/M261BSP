@@ -5,7 +5,6 @@
  *
  * @note
  * SPDX-License-Identifier: Apache-2.0
- *
  * Copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 
@@ -20,6 +19,8 @@
 
 
 /// @cond HIDDEN_SYMBOLS
+
+extern int hid_parse_report_descriptor(HID_DEV_T *hdev, IFACE_T *iface);
 
 static HID_DEV_T  g_hid_dev[CONFIG_HID_MAX_DEV];
 
@@ -63,8 +64,9 @@ static int hid_probe(IFACE_T *iface)
     if(ifd->bInterfaceClass != USB_CLASS_HID)
         return USBH_ERR_NOT_MATCHED;
 
-    HID_DBGMSG("hid_probe - device (vid=0x%x, pid=0x%x), interface %d.\n",
-               udev->descriptor.idVendor, udev->descriptor.idProduct, ifd->bInterfaceNumber);
+    HID_DBGMSG("hid_probe - device (vid=0x%x, pid=0x%x), interface %d, subclass 0x%x, protocol 0x%x.\n",
+               udev->descriptor.idVendor, udev->descriptor.idProduct, ifd->bInterfaceNumber,
+               ifd->bInterfaceSubClass, ifd->bInterfaceProtocol);
 
     /*
      *  Try to find any interrupt endpoints
@@ -93,6 +95,8 @@ static int hid_probe(IFACE_T *iface)
     hdev->next = NULL;
     iface->context = (void *)hdev;
 
+    hid_parse_report_descriptor(hdev, iface);
+
     /*
      *  Chaining newly found HID device to end of HID device list.
      */
@@ -105,7 +109,7 @@ static int hid_probe(IFACE_T *iface)
         p->next = hdev;
     }
 
-    HID_DBGMSG("usbhid_probe OK.\n");
+    HID_DBGMSG("usbhid_probe OK. hdev=0x%x\n", (int)hdev);
 
     return 0;
 }
@@ -115,6 +119,7 @@ static void  hid_disconnect(IFACE_T *iface)
 {
     HID_DEV_T   *hdev, *p;
     UTR_T       *utr;
+    RP_INFO_T   *rp, *next_rp;
     int         i;
 
     hdev = (HID_DEV_T *)(iface->context);
@@ -135,6 +140,22 @@ static void  hid_disconnect(IFACE_T *iface)
             usbh_quit_utr(utr);             /* Quit the UTR */
             usbh_free_mem(utr->buff, utr->ep->wMaxPacketSize);
             free_utr(utr);
+        }
+    }
+
+    if(hdev->rpd.utr_led != NULL)
+    {
+        usbh_quit_utr(hdev->rpd.utr_led);   /* Quit the UTR                               */
+        free_utr(hdev->rpd.utr_led);
+    }
+
+    if(hdev->rpd.report != NULL)
+    {
+        for(rp = hdev->rpd.report; rp != NULL;)
+        {
+            next_rp = rp->next;
+            usbh_free_mem(rp, sizeof(RP_INFO_T));
+            rp = next_rp;
         }
     }
 
