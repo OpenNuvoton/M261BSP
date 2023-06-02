@@ -1,5 +1,5 @@
 /****************************************************************************//**
- * @file     startup_M261.s
+ * @file     startup_MR63.s
  * @version  V1.00
  * @brief    CMSIS Device Startup File
  *
@@ -277,6 +277,14 @@ Reset_Handler
     SECTION .text:CODE:NOROOT:REORDER(2)
 
 HardFault_Handler
+                IMPORT  ProcessHardFault
+                MOV     R0, LR
+                MRS     R1, MSP
+                MRS     R2, PSP
+                LDR     R3, =ProcessHardFault
+                BLX     R3
+                BX      R0
+
 NMI_Handler       
 SVC_Handler       
 PendSV_Handler    

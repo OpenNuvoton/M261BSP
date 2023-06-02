@@ -1,5 +1,5 @@
 ;/**************************************************************************//**
-; * @file     startup_M261.s
+; * @file     startup_MR63.s
 ; * @version  V2.00
 ; * $Revision: 9 $
 ; * $Date: 16/08/27 12:33p $ 
@@ -210,17 +210,12 @@ HardFault_Handler\
                 PROC
                 IMPORT  ProcessHardFault
                 EXPORT  HardFault_Handler         [WEAK]
-                MOV     R0, LR                 
-                MRS     R1, MSP                
-                MRS     R2, PSP                
-                LDR     R3, =ProcessHardFault 
-                BLX     R3                     
-                BX      R0                     
-                ENDP
-ProcessHardFaultx\
-                PROC
-                EXPORT  ProcessHardFaultx          [WEAK]
-                B       .
+                MOV     R0, LR
+                MRS     R1, MSP
+                MRS     R2, PSP
+                LDR     R3, =ProcessHardFault
+                BLX     R3
+                BX      R0
                 ENDP
 SVC_Handler     PROC
                 EXPORT  SVC_Handler               [WEAK]

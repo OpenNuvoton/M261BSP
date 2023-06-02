@@ -1165,7 +1165,6 @@ int32_t  ECC_GenerateSecretZ(CRPT_T *crpt, E_ECC_CURVE ecc_curve, char *private_
 
 static int32_t run_ecc_codec(CRPT_T *crpt, uint32_t mode)
 {
-    uint32_t u32Tmp;
     int32_t i32TimeOutCnt;
 
     if((mode & CRPT_ECC_CTL_ECCOP_Msk) == ECCOP_MODULE)
