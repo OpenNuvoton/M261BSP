@@ -111,10 +111,10 @@ uint32_t ProcessHardFault(uint32_t lr, uint32_t msp, uint32_t psp)
             sp = (uint32_t *)__TZ_get_PSP_NS();
         else
             sp = (uint32_t *)__TZ_get_MSP_NS();
-
+    
     }
-#endif
-
+#endif    
+        
     if (sp != 0)
     {
         /* Get the instruction caused the hardfault */
@@ -132,10 +132,10 @@ uint32_t ProcessHardFault(uint32_t lr, uint32_t msp, uint32_t psp)
             return lr;  // Keep lr in R0
         }
     }
-
+    
     /* It is casued by hardfault (Not semihost). Just process the hard fault here. */
     /* TODO: Implement your hardfault handle code here */
-
+    
     /*
     printf("  HardFault!\n\n");
     printf("r0  = 0x%x\n", sp[0]);
@@ -221,8 +221,9 @@ uint32_t ProcessHardFault(uint32_t lr, uint32_t msp, uint32_t psp)
     }
 #endif    
     
-    /*
+
     printf("  HardFault!\n\n");
+    /*
     printf("r0  = 0x%x\n", sp[0]);
     printf("r1  = 0x%x\n", sp[1]);
     printf("r2  = 0x%x\n", sp[2]);
@@ -235,7 +236,7 @@ uint32_t ProcessHardFault(uint32_t lr, uint32_t msp, uint32_t psp)
 
     /* Or *sp to remove compiler warning */
     while(1U|*sp){}
-
+    
     return lr;
 }
 
@@ -308,7 +309,7 @@ void SendChar_ToUART(int ch)
         if(i32Tail == i32Head)
             return;
     }
-
+    
     // pop char
     do
     {
@@ -346,7 +347,7 @@ void SendChar(int ch)
         /* Send the char */
         if(g_ICE_Conneced)
         {
-
+            
             if(SH_DoCommand(0x04, (int)g_buf, NULL) != 0)
             {
                 g_buf_len = 0;
