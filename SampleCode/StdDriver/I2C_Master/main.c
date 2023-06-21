@@ -325,7 +325,7 @@ void I2C0_Close(void)
 
 }
 
-int32_t I2C0_Read_Write_SLAVE(uint8_t u8SlvAddr)
+int32_t I2C0_Read_Write_SLAVE(uint16_t u8SlvAddr)
 {
     uint32_t u32i;
 

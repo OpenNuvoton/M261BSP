@@ -21,7 +21,6 @@ volatile uint8_t g_au8SlvRxData[3];
 /*---------------------------------------------------------------------------------------------------------*/
 /* Global variables                                                                                        */
 /*---------------------------------------------------------------------------------------------------------*/
-volatile uint8_t g_u8DeviceAddr;
 volatile uint8_t g_au8SlvTxData[3];
 volatile uint8_t g_u8SlvDataLen;
 volatile uint8_t g_u8SlvEndFlag = 0;
