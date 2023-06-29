@@ -15,10 +15,6 @@
 
 void SYS_Init(void)
 {
-    /* Set PF multi-function pins for XT1_OUT(PF.2) and XT1_IN(PF.3) */
-    SYS->GPF_MFPL = (SYS->GPF_MFPL & (~SYS_GPF_MFPL_PF2MFP_Msk)) | SYS_GPF_MFPL_PF2MFP_XT1_OUT;
-    SYS->GPF_MFPL = (SYS->GPF_MFPL & (~SYS_GPF_MFPL_PF3MFP_Msk)) | SYS_GPF_MFPL_PF3MFP_XT1_IN;
-
     /*---------------------------------------------------------------------------------------------------------*/
     /* Init System Clock                                                                                       */
     /*---------------------------------------------------------------------------------------------------------*/
@@ -32,12 +28,6 @@ void SYS_Init(void)
     /* Select HCLK clock source as HIRC and HCLK source divider as 1 */
     CLK_SetHCLK(CLK_CLKSEL0_HCLKSEL_HIRC, CLK_CLKDIV0_HCLK(1));
 
-    /* Enable HXT clock */
-    CLK_EnableXtalRC(CLK_PWRCTL_HXTEN_Msk);
-
-    /* Wait for HXT clock ready */
-    CLK_WaitClockReady(CLK_STATUS_HXTSTB_Msk);
-
     /* Enable PLL */
     CLK->PLLCTL = CLK_PLLCTL_128MHz_HIRC;
 
@@ -46,9 +36,6 @@ void SYS_Init(void)
 
     /* Select HCLK clock source as PLL and HCLK source divider as 2 */
     CLK_SetHCLK(CLK_CLKSEL0_HCLKSEL_PLL, CLK_CLKDIV0_HCLK(2));
-
-    /* Enable UART module clock */
-    CLK_EnableModuleClock(UART0_MODULE);
 
     /* Enable UART module clock */
     CLK_EnableModuleClock(UART0_MODULE);

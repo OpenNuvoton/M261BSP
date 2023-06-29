@@ -348,7 +348,7 @@ void TIMER_EnableFreqCounter(TIMER_T *timer,
         t = 0UL ;
     }
 
-    if(t != 0UL)
+    if((uint32_t)t != 0UL)
     {
         t->CMP = 0xFFFFFFUL;
         t->EXTCTL = u32EnableInt ? TIMER_EXTCTL_CAPIEN_Msk : 0UL;

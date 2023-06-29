@@ -80,7 +80,7 @@
                 </option>
                 <option>
                     <name>OCProductVersion</name>
-                    <state>7.80.2.11970</state>
+                    <state>8.42.1.23678</state>
                 </option>
                 <option>
                     <name>OCDynDriverList</name>
@@ -140,7 +140,7 @@
                 </option>
                 <option>
                     <name>OverrideDefFlashBoard</name>
-                    <state>1</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>OCImagesOffset1</name>
@@ -316,7 +316,7 @@
                 </option>
                 <option>
                     <name>CMSISDAPInterfaceRadio</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>CMSISDAPInterfaceCmdLine</name>
@@ -540,7 +540,7 @@
                 </option>
                 <option>
                     <name>IjetInterfaceRadio</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>IjetInterfaceCmdLine</name>
@@ -830,7 +830,7 @@
                 </option>
                 <option>
                     <name>CCJLinkInterfaceRadio</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>CCJLinkResetList</name>
@@ -949,7 +949,7 @@
                 </option>
                 <option>
                     <name>CCLmiFtdiInterfaceRadio</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>CCLmiFtdiInterfaceCmdLine</name>
@@ -1016,7 +1016,7 @@
                 </option>
                 <option>
                     <name>CCSTLinkInterfaceRadio</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>CCSTLinkInterfaceCmdLine</name>
@@ -1033,7 +1033,7 @@
                 </option>
                 <option>
                     <name>CCSwoClockAuto</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>CCSwoClockEdit</name>
@@ -1123,7 +1123,7 @@
                 <option>
                     <name>CCSTLinkProbeList</name>
                     <version>1</version>
-                    <state>2</state>
+                    <state>0</state>
                 </option>
             </data>
         </settings>
@@ -1379,7 +1379,7 @@
                 <option>
                     <name>CCXds100ProbeList</name>
                     <version>0</version>
-                    <state>2</state>
+                    <state>3</state>
                 </option>
                 <option>
                     <name>CCXds100SWOPortRadio</name>

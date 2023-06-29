@@ -280,7 +280,7 @@ const size_t xRegTestStackSize = 25U;
 
     
     
-#if 0 // CWS: This will cause Task stack overflow. Just disable it.
+
     
 	/* Create the software timer that performs the 'check' functionality,
 	as described at the top of this file. */
@@ -300,7 +300,6 @@ const size_t xRegTestStackSize = 25U;
 		xTimerStart( xTimer, mainDONT_BLOCK );
 	}
 
-#endif    
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */
 	vTaskStartScheduler();
 

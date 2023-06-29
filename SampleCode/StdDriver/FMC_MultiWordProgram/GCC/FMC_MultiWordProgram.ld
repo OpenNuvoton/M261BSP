@@ -51,7 +51,8 @@ SECTIONS
 		__Vectors_Size = __Vectors_End - __Vectors;
 		__end__ = .;
 
-		*(.text*)
+		/* *(.text*) */
+		*(EXCLUDE_FILE(./Library/Library/fmc.o) .text*)
 
 		KEEP(*(.init))
 		KEEP(*(.fini))
@@ -126,6 +127,9 @@ SECTIONS
 	.data : AT (__etext)
 	{
 		__data_start__ = .;
+
+		./Library/Library/fmc.o (.text*)
+
 		*(vtable)
 		*(.data*)
 

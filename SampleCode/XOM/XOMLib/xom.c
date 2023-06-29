@@ -12,16 +12,15 @@
 
 int32_t XOM_Add(int32_t a, int32_t b)
 {
-    uint32_t c;
-    uint32_t d = 0x7654321;
-    c =  a + b + d;
+    int32_t c;
+    c =  a + b;
 
     return c;
 }
 
 int32_t XOM_Sub(int32_t a, int32_t b)
 {
-    uint32_t c;
+    int32_t c;
 
     c =  a - b;
 
@@ -30,7 +29,7 @@ int32_t XOM_Sub(int32_t a, int32_t b)
 
 int32_t XOM_Mul(int32_t a, int32_t b)
 {
-    uint32_t c;
+    int32_t c;
 
 
     c =  a * b;
@@ -40,7 +39,7 @@ int32_t XOM_Mul(int32_t a, int32_t b)
 
 int32_t XOM_Div(int32_t a, int32_t b)
 {
-    uint32_t c;
+    int32_t c;
 
     c =  a / b;
 

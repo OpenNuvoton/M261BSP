@@ -37,12 +37,6 @@ void SYS_Init(void)
     /* Select HCLK clock source as HIRC and HCLK source divider as 1 */
     CLK_SetHCLK(CLK_CLKSEL0_HCLKSEL_HIRC, CLK_CLKDIV0_HCLK(1));
 
-    /* Enable HXT clock */
-    CLK_EnableXtalRC(CLK_PWRCTL_HXTEN_Msk);
-
-    /* Wait for HXT clock ready */
-    CLK_WaitClockReady(CLK_STATUS_HXTSTB_Msk);
-
     /* Enable PLL */
     CLK->PLLCTL = CLK_PLLCTL_128MHz_HIRC;
 
@@ -55,8 +49,8 @@ void SYS_Init(void)
     /* Enable UART module clock */
     CLK_EnableModuleClock(UART0_MODULE);
 
-    /* Select UART module clock source as HXT and UART module clock divider as 1 */
-    CLK_SetModuleClock(UART0_MODULE, CLK_CLKSEL1_UART0SEL_HXT, CLK_CLKDIV0_UART0(1));
+    /* Select UART module clock source as HIRC and UART module clock divider as 1 */
+    CLK_SetModuleClock(UART0_MODULE, CLK_CLKSEL1_UART0SEL_HIRC, CLK_CLKDIV0_UART0(1));
 
     /*---------------------------------------------------------------------------------------------------------*/
     /* Init I/O Multi-function                                                                                 */
@@ -117,6 +111,9 @@ int32_t main(void)
     SYS_UnlockReg();                   /* Unlock protected registers */
 
     FMC_Open();                        /* Enable FMC ISP function */
+
+    printf("The security key status before key setup:\n");
+    dump_key_status();                 /* Dump FMC security key status. */
 
     /* Setup a new key */
     if(FMC_SetSPKey(good_key, KPMAX_VAL, KEMAX_VAL, 0, 0) < 0)
