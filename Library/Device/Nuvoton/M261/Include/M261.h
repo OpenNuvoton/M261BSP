@@ -28,7 +28,7 @@
   *
  * SPDX-License-Identifier: Apache-2.0
  *
-  * Copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
+  * Copyright (C) 2019~2023 Nuvoton Technology Corp. All rights reserved.
   */
 
 
