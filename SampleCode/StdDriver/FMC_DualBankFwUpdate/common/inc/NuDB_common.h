@@ -3,7 +3,8 @@
  * @version  V0.00
  * @brief    NuDB common header file
  *
- * @copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
+ * @copyright SPDX-License-Identifier: Apache-2.0
+ * @copyright Copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
  *****************************************************************************/
 #ifndef __NUDB_COMMON_H__
 #define __NUDB_COMMON_H__

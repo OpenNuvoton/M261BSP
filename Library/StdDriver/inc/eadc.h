@@ -4,9 +4,9 @@
  * @brief    M261 series EADC driver header file
  *
  * @note
- * SPDX-License-Identifier: Apache-2.0
  *
- * Copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
+ * @copyright SPDX-License-Identifier: Apache-2.0
+ * @copyright Copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 #ifndef __EADC_H__
 #define __EADC_H__

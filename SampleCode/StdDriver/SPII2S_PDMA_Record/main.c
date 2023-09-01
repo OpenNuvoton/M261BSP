@@ -4,7 +4,8 @@
  * @brief    M261 SPII2S Driver Sample Code
  *           This is an I2S demo for recording data and demonstrate how I2S works with PDMA.
  *
- * Copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
+ * @copyright SPDX-License-Identifier: Apache-2.0
+ * @copyright Copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
  ******************************************************************************/
 #include <stdio.h>
 #include <string.h>

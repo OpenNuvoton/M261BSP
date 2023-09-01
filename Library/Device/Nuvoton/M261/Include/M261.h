@@ -4,10 +4,10 @@
  * @brief    Peripheral Access Layer Header File
  *
  * @note
- * SPDX-License-Identifier: Apache-2.0
  *
- * Copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
+ * @copyright SPDX-License-Identifier: Apache-2.0
  *
+ * @copyright Copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
  ******************************************************************************/
 
 /**
@@ -599,5 +599,4 @@ typedef volatile unsigned short vu16;
 #endif  /* __M261_H__ */
 
 
-/* Copyright (C) 2019 Nuvoton Technology Corp. All rights reserved. */
 

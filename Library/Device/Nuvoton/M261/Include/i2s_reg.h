@@ -3,9 +3,9 @@
  * @version  V1.00
  * @brief    I2S register definition header file
  *
- * SPDX-License-Identifier: Apache-2.0
  *
- * @copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
+ * @copyright SPDX-License-Identifier: Apache-2.0
+ * @copyright Copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
  *****************************************************************************/
 #ifndef __I2S_REG_H__
 #define __I2S_REG_H__
