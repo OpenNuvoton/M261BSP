@@ -45,7 +45,7 @@ int ParseCmd(uint8_t *pu8Buffer, uint8_t u8len)
     pu8Src += 8;
     u32srclen -= 8;
     
-    ReadData(Config0, Config0 + 16, (uint32_t *)(pu8Response + 8)); /* Read config */
+    ReadData(Config0, Config0 + 16, (unsigned int *)(pu8Response + 8)); /* Read config */
 
     if(u32Lcmd == CMD_SYNC_PACKNO)
     {
@@ -116,7 +116,7 @@ int ParseCmd(uint8_t *pu8Buffer, uint8_t u8len)
     }
     else if(u32Lcmd == CMD_UPDATE_CONFIG)
     {
-        UpdateConfig((uint32_t *)(pu8Src), (uint32_t *)(pu8Response + 8));
+        UpdateConfig((unsigned int *)(pu8Src), (unsigned int *)(pu8Response + 8));
         goto out;
     }
     else if(u32Lcmd == CMD_RESEND_PACKET)      /* for APROM and Data flash only */
@@ -130,9 +130,9 @@ int ParseCmd(uint8_t *pu8Buffer, uint8_t u8len)
             goto out;
         }
 
-        ReadData(u32PageAddress, u32StartAddress, (uint32_t *)g_u8ApromBuf);
+        ReadData(u32PageAddress, u32StartAddress, (unsigned int *)g_u8ApromBuf);
         FMC_Erase_User(u32PageAddress);
-        WriteData(u32PageAddress, u32StartAddress, (uint32_t *)g_u8ApromBuf);
+        WriteData(u32PageAddress, u32StartAddress, (unsigned int *)g_u8ApromBuf);
 
         if((u32StartAddress % FMC_FLASH_PAGE_SIZE) >= (FMC_FLASH_PAGE_SIZE - u32LastDataLen))
         {
@@ -150,9 +150,9 @@ int ParseCmd(uint8_t *pu8Buffer, uint8_t u8len)
         }
 
         u32TotalLen -= u32srclen;
-        WriteData(u32StartAddress, u32StartAddress + u32srclen, (uint32_t *)pu8Src); 
+        WriteData(u32StartAddress, u32StartAddress + u32srclen, (unsigned int *)pu8Src); 
         memset(pu8Src, 0, u32srclen);
-        ReadData(u32StartAddress, u32StartAddress + u32srclen, (uint32_t *)pu8Src);
+        ReadData(u32StartAddress, u32StartAddress + u32srclen, (unsigned int *)pu8Src);
         u32StartAddress += u32srclen;
         u32LastDataLen =  u32srclen;
     }
