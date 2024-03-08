@@ -16,7 +16,7 @@
 
 uint32_t g_au32PcmRxBuff[2][BUFF_LEN] = {0};
 uint32_t g_au32PcmTxBuff[2][BUFF_LEN] = {0};
-DMA_DESC_T DMA_TXDESC[2], DMA_RXDESC[2];
+DMA_DESC_T DMA_TXDESC[2] = {0}, DMA_RXDESC[2] = {0};
 
 volatile uint8_t u8TxIdx = 0, u8RxIdx = 0;
 volatile uint8_t u8CopyData = 0;
