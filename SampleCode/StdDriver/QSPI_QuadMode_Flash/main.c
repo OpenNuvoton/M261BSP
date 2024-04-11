@@ -9,13 +9,33 @@
 #include <stdio.h>
 #include "NuMicro.h"
 
-#define TEST_NUMBER 1   /* page numbers */
-#define TEST_LENGTH 256 /* length */
+// *** <<< Use Configuration Wizard in Context Menu >>> ***
+// <o> GPIO Slew Rate Control
+// <0=> Normal <1=> High <2=> Fast
+#define SlewRateMode    0
+// *** <<< end of configuration section >>> ***
+
+#define TEST_NUMBER     1   /* page numbers */
+#define TEST_LENGTH     256 /* length */
 
 #define SPI_FLASH_PORT  QSPI0
 
-uint8_t g_au8SrcArray[TEST_LENGTH];
-uint8_t g_au8DestArray[TEST_LENGTH];
+static uint8_t s_au8SrcArray[TEST_LENGTH];
+static uint8_t s_au8DestArray[TEST_LENGTH];
+
+void D2D3_SwitchToNormalMode(void);
+void D2D3_SwitchToQuadMode(void);
+uint16_t SpiFlash_ReadMidDid(void);
+void SpiFlash_ChipErase(void);
+uint8_t SpiFlash_ReadStatusReg(void);
+uint8_t SpiFlash_ReadStatusReg2(void);
+void SpiFlash_WriteStatusReg(uint8_t u8Value1, uint8_t u8Value2);
+int32_t SpiFlash_WaitReady(void);
+void SpiFlash_NormalPageProgram(uint32_t u32StartAddress, uint8_t *u8DataBuffer);
+void spiFlash_EnableQEBit(void);
+void spiFlash_DisableQEBit(void);
+void SpiFlash_QuadFastRead(uint32_t u32StartAddress, uint8_t *u8DataBuffer);
+void SYS_Init(void);
 
 void D2D3_SwitchToNormalMode(void)
 {
@@ -71,9 +91,9 @@ uint16_t SpiFlash_ReadMidDid(void)
     QSPI_SET_SS_HIGH(SPI_FLASH_PORT);
 
     while(!QSPI_GET_RX_FIFO_EMPTY_FLAG(SPI_FLASH_PORT))
-        u8RxData[u8IDCnt ++] = QSPI_READ_RX(SPI_FLASH_PORT);
+        u8RxData[u8IDCnt ++] = (uint8_t)QSPI_READ_RX(SPI_FLASH_PORT);
 
-    return ((u8RxData[4] << 8) | u8RxData[5]);
+    return (uint16_t)((u8RxData[4] << 8) | u8RxData[5]);
 }
 
 void SpiFlash_ChipErase(void)
@@ -129,8 +149,8 @@ uint8_t SpiFlash_ReadStatusReg(void)
     QSPI_SET_SS_HIGH(SPI_FLASH_PORT);
 
     // skip first rx data
-    u8Val = QSPI_READ_RX(SPI_FLASH_PORT);
-    u8Val = QSPI_READ_RX(SPI_FLASH_PORT);
+    u8Val = (uint8_t)QSPI_READ_RX(SPI_FLASH_PORT);
+    u8Val = (uint8_t)QSPI_READ_RX(SPI_FLASH_PORT);
 
     return u8Val;
 }
@@ -157,8 +177,8 @@ uint8_t SpiFlash_ReadStatusReg2(void)
     QSPI_SET_SS_HIGH(SPI_FLASH_PORT);
 
     // skip first rx data
-    u8Val = QSPI_READ_RX(SPI_FLASH_PORT);
-    u8Val = QSPI_READ_RX(SPI_FLASH_PORT);
+    u8Val = (uint8_t)QSPI_READ_RX(SPI_FLASH_PORT);
+    u8Val = (uint8_t)QSPI_READ_RX(SPI_FLASH_PORT);
 
     return u8Val;
 }
@@ -323,7 +343,7 @@ void SpiFlash_QuadFastRead(uint32_t u32StartAddress, uint8_t *u8DataBuffer)
     {
         QSPI_WRITE_TX(SPI_FLASH_PORT, 0x00);
         wait_QSPI_IS_BUSY(SPI_FLASH_PORT);
-        u8DataBuffer[u32Cnt] = QSPI_READ_RX(SPI_FLASH_PORT);
+        u8DataBuffer[u32Cnt] = (uint8_t)QSPI_READ_RX(SPI_FLASH_PORT);
     }
 
     // wait tx finish
@@ -344,6 +364,7 @@ void SYS_Init(void)
     /*---------------------------------------------------------------------------------------------------------*/
     /* Init System Clock                                                                                       */
     /*---------------------------------------------------------------------------------------------------------*/
+
     /* Enable HIRC clock */
     CLK_EnableXtalRC(CLK_PWRCTL_HIRCEN_Msk);
 
@@ -386,6 +407,7 @@ void SYS_Init(void)
     /*---------------------------------------------------------------------------------------------------------*/
     /* Init I/O Multi-function                                                                                 */
     /*---------------------------------------------------------------------------------------------------------*/
+
     /* Set multi-function pins for UART0 RXD and TXD */
     SYS->GPB_MFPH = (SYS->GPB_MFPH & (~(UART0_RXD_PB12_Msk | UART0_TXD_PB13_Msk))) | UART0_RXD_PB12 | UART0_TXD_PB13;
 
@@ -394,6 +416,17 @@ void SYS_Init(void)
                        SYS_GPC_MFPL_PC4MFP_Msk | SYS_GPC_MFPL_PC5MFP_Msk);
     SYS->GPC_MFPL |= (SYS_GPC_MFPL_PC0MFP_QSPI0_MOSI0 | SYS_GPC_MFPL_PC1MFP_QSPI0_MISO0 | SYS_GPC_MFPL_PC2MFP_QSPI0_CLK | SYS_GPC_MFPL_PC3MFP_QSPI0_SS |
                       SYS_GPC_MFPL_PC4MFP_QSPI0_MOSI1 | SYS_GPC_MFPL_PC5MFP_QSPI0_MISO1);
+
+#if (SlewRateMode == 0)
+    /* Enable QSPI0 I/O normal slew rate */
+    GPIO_SetSlewCtl(PC, BIT0 | BIT1 | BIT2 | BIT3 | BIT4 | BIT5, GPIO_SLEWCTL_NORMAL);
+#elif (SlewRateMode == 1)
+    /* Enable QSPI0 I/O high slew rate */
+    GPIO_SetSlewCtl(PC, BIT0 | BIT1 | BIT2 | BIT3 | BIT4 | BIT5, GPIO_SLEWCTL_HIGH);
+#elif (SlewRateMode == 2)
+    /* Enable QSPI0 I/O fast slew rate */
+    GPIO_SetSlewCtl(PC, BIT0 | BIT1 | BIT2 | BIT3 | BIT4 | BIT5, GPIO_SLEWCTL_FAST);
+#endif
 
     /* Update System Core Clock */
     /* User can use SystemCoreClockUpdate() to calculate SystemCoreClock and CyclesPerUs automatically. */
@@ -425,7 +458,7 @@ int main(void)
     QSPI_DisableAutoSS(SPI_FLASH_PORT);
 
     printf("\n+-------------------------------------------------------------------------+\n");
-    printf("|               M261 QSPI Quad Mode with Flash Sample Code                |\n");
+    printf("|                  QSPI Quad Mode with Flash Sample Code                  |\n");
     printf("+-------------------------------------------------------------------------+\n");
 
     if((u16ID = SpiFlash_ReadMidDid()) != 0xEF14)
@@ -442,14 +475,14 @@ int main(void)
     SpiFlash_ChipErase();
 
     /* Wait ready */
-    if( SpiFlash_WaitReady() < 0 ) goto lexit;
+    if(SpiFlash_WaitReady() < 0) goto lexit;
 
     printf("[OK]\n");
 
     /* init source data buffer */
     for(u32ByteCount = 0; u32ByteCount < TEST_LENGTH; u32ByteCount++)
     {
-        g_au8SrcArray[u32ByteCount] = u32ByteCount;
+        s_au8SrcArray[u32ByteCount] = (uint8_t)u32ByteCount;
     }
 
     printf("Start to write data to Flash ...");
@@ -458,8 +491,8 @@ int main(void)
     for(u32PageNumber = 0; u32PageNumber < TEST_NUMBER; u32PageNumber++)
     {
         /* page program */
-        SpiFlash_NormalPageProgram(u32FlashAddress, g_au8SrcArray);
-        if( SpiFlash_WaitReady() < 0 ) goto lexit;
+        SpiFlash_NormalPageProgram(u32FlashAddress, s_au8SrcArray);
+        if(SpiFlash_WaitReady() < 0) goto lexit;
         u32FlashAddress += 0x100;
     }
 
@@ -468,7 +501,7 @@ int main(void)
     /* clear destination data buffer */
     for(u32ByteCount = 0; u32ByteCount < TEST_LENGTH; u32ByteCount++)
     {
-        g_au8DestArray[u32ByteCount] = 0;
+        s_au8DestArray[u32ByteCount] = 0;
     }
 
     printf("Read & Compare ...");
@@ -478,12 +511,12 @@ int main(void)
     for(u32PageNumber = 0; u32PageNumber < TEST_NUMBER; u32PageNumber++)
     {
         /* page read */
-        SpiFlash_QuadFastRead(u32FlashAddress, g_au8DestArray);
+        SpiFlash_QuadFastRead(u32FlashAddress, s_au8DestArray);
         u32FlashAddress += 0x100;
 
         for(u32ByteCount = 0; u32ByteCount < TEST_LENGTH; u32ByteCount++)
         {
-            if(g_au8DestArray[u32ByteCount] != g_au8SrcArray[u32ByteCount])
+            if(s_au8DestArray[u32ByteCount] != s_au8SrcArray[u32ByteCount])
                 u32Error ++;
         }
     }
@@ -497,6 +530,3 @@ lexit:
 
     while(1);
 }
-
-/*** (C) COPYRIGHT 2019 Nuvoton Technology Corp. ***/
-

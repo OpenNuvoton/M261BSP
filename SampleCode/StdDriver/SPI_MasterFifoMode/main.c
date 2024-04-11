@@ -11,18 +11,31 @@
 #include <stdio.h>
 #include "NuMicro.h"
 
-#define TEST_COUNT  16
+// *** <<< Use Configuration Wizard in Context Menu >>> ***
+// <o> GPIO Slew Rate Control
+// <0=> Normal <1=> High <2=> Fast
+#define SlewRateMode    0
+// *** <<< end of configuration section >>> ***
 
-uint32_t g_au32SourceData[TEST_COUNT];
-uint32_t g_au32DestinationData[TEST_COUNT];
-volatile uint32_t g_u32TxDataCount;
-volatile uint32_t g_u32RxDataCount;
+#define TEST_COUNT      16
+
+#define InterruptMode /* Undefine it when using polling mode */
+
+static uint32_t s_au32SourceData[TEST_COUNT];
+static uint32_t s_au32DestinationData[TEST_COUNT];
+static volatile uint32_t s_u32TxDataCount;
+static volatile uint32_t s_u32RxDataCount;
+
+void SYS_Init(void);
+void SPI_Init(void);
+void SPI0_IRQHandler(void);
 
 void SYS_Init(void)
 {
     /*---------------------------------------------------------------------------------------------------------*/
     /* Init System Clock                                                                                       */
     /*---------------------------------------------------------------------------------------------------------*/
+
     /* Enable HIRC clock */
     CLK_EnableXtalRC(CLK_PWRCTL_HIRCEN_Msk);
 
@@ -65,12 +78,24 @@ void SYS_Init(void)
     /*---------------------------------------------------------------------------------------------------------*/
     /* Init I/O Multi-function                                                                                 */
     /*---------------------------------------------------------------------------------------------------------*/
+
     /* Set multi-function pins for UART0 RXD and TXD */
     SYS->GPB_MFPH = (SYS->GPB_MFPH & (~(UART0_RXD_PB12_Msk | UART0_TXD_PB13_Msk))) | UART0_RXD_PB12 | UART0_TXD_PB13;
 
     /* Setup SPI0 multi-function pins */
     SYS->GPD_MFPL &= ~(SYS_GPD_MFPL_PD0MFP_Msk | SYS_GPD_MFPL_PD1MFP_Msk | SYS_GPD_MFPL_PD2MFP_Msk | SYS_GPD_MFPL_PD3MFP_Msk);
     SYS->GPD_MFPL |= (SYS_GPD_MFPL_PD0MFP_SPI0_MOSI | SYS_GPD_MFPL_PD1MFP_SPI0_MISO | SYS_GPD_MFPL_PD2MFP_SPI0_CLK | SYS_GPD_MFPL_PD3MFP_SPI0_SS);
+
+#if (SlewRateMode == 0)
+    /* Enable SPI0 I/O normal slew rate */
+    GPIO_SetSlewCtl(PD, BIT0 | BIT1 | BIT2 | BIT3, GPIO_SLEWCTL_NORMAL);
+#elif (SlewRateMode == 1)
+    /* Enable SPI0 I/O high slew rate */
+    GPIO_SetSlewCtl(PD, BIT0 | BIT1 | BIT2 | BIT3, GPIO_SLEWCTL_HIGH);
+#elif (SlewRateMode == 2)
+    /* Enable SPI0 I/O fast slew rate */
+    GPIO_SetSlewCtl(PD, BIT0 | BIT1 | BIT2 | BIT3, GPIO_SLEWCTL_FAST);
+#endif
 
     /* Update System Core Clock */
     /* User can use SystemCoreClockUpdate() to calculate SystemCoreClock and CyclesPerUs automatically. */
@@ -96,15 +121,15 @@ void SPI0_IRQHandler(void)
     while(SPI_GET_RX_FIFO_EMPTY_FLAG(SPI0) == 0)
     {
         /* Read RX FIFO */
-        g_au32DestinationData[g_u32RxDataCount++] = SPI_READ_RX(SPI0);
+        s_au32DestinationData[s_u32RxDataCount++] = SPI_READ_RX(SPI0);
     }
     /* Check TX FULL flag and TX data count */
-    while((SPI_GET_TX_FIFO_FULL_FLAG(SPI0) == 0) && (g_u32TxDataCount < TEST_COUNT))
+    while((SPI_GET_TX_FIFO_FULL_FLAG(SPI0) == 0) && (s_u32TxDataCount < TEST_COUNT))
     {
         /* Write to TX FIFO */
-        SPI_WRITE_TX(SPI0, g_au32SourceData[g_u32TxDataCount++]);
+        SPI_WRITE_TX(SPI0, s_au32SourceData[s_u32TxDataCount++]);
     }
-    if(g_u32TxDataCount >= TEST_COUNT)
+    if(s_u32TxDataCount >= TEST_COUNT)
         SPI_DisableInt(SPI0, SPI_FIFO_TXTH_INT_MASK); /* Disable TX FIFO threshold interrupt */
 
     /* Check the RX FIFO time-out interrupt flag */
@@ -112,7 +137,7 @@ void SPI0_IRQHandler(void)
     {
         /* If RX FIFO is not empty, read RX FIFO. */
         while(SPI_GET_RX_FIFO_EMPTY_FLAG(SPI0) == 0)
-            g_au32DestinationData[g_u32RxDataCount++] = SPI_READ_RX(SPI0);
+            s_au32DestinationData[s_u32RxDataCount++] = SPI_READ_RX(SPI0);
     }
 }
 
@@ -153,43 +178,59 @@ int main(void)
     for(u32DataCount = 0; u32DataCount < TEST_COUNT; u32DataCount++)
     {
         /* Write the initial value to source buffer */
-        g_au32SourceData[u32DataCount] = 0x00550000 + u32DataCount;
+        s_au32SourceData[u32DataCount] = 0x00550000 + u32DataCount;
         /* Clear destination buffer */
-        g_au32DestinationData[u32DataCount] = 0;
+        s_au32DestinationData[u32DataCount] = 0;
     }
 
+    s_u32TxDataCount = 0;
+    s_u32RxDataCount = 0;
     printf("Before starting the data transfer, make sure the slave device is ready. Press any key to start the transfer.\n");
     getchar();
     printf("\n");
 
-    /* Set TX FIFO threshold, enable TX FIFO threshold interrupt and RX FIFO time-out interrupt */
-    SPI_SetFIFO(SPI0, 4, 4);
-    SPI_EnableInt(SPI0, SPI_FIFO_TXTH_INT_MASK | SPI_FIFO_RXTO_INT_MASK);
+    /* Set TX FIFO threshold */
+    SPI_SetFIFO(SPI0, 2, 2);
 
-    g_u32TxDataCount = 0;
-    g_u32RxDataCount = 0;
+#ifdef InterruptMode
+    /* Enable TX FIFO threshold interrupt and RX FIFO time-out interrupt */
+    SPI_EnableInt(SPI0, SPI_FIFO_TXTH_INT_MASK | SPI_FIFO_RXTO_INT_MASK);
     NVIC_EnableIRQ(SPI0_IRQn);
 
     /* Wait for transfer done */
-    while(g_u32RxDataCount < TEST_COUNT);
+    while(s_u32RxDataCount < TEST_COUNT);
+#else
+    /* Wait for transfer done */
+    while(s_u32RxDataCount < TEST_COUNT)
+    {
+        /* Check TX FULL flag and TX data count */
+        if((SPI_GET_TX_FIFO_FULL_FLAG(SPI0) == 0) && (s_u32TxDataCount < TEST_COUNT))
+            SPI_WRITE_TX(SPI0, s_au32SourceData[s_u32TxDataCount++]); /* Write to TX FIFO */
+        /* Check RX EMPTY flag */
+        if(SPI_GET_RX_FIFO_EMPTY_FLAG(SPI0) == 0)
+            s_au32DestinationData[s_u32RxDataCount++] = SPI_READ_RX(SPI0); /* Read RX FIFO */
+    }
+#endif
 
     /* Print the received data */
     printf("Received data:\n");
     for(u32DataCount = 0; u32DataCount < TEST_COUNT; u32DataCount++)
     {
-        printf("%d:\t0x%X\n", u32DataCount, g_au32DestinationData[u32DataCount]);
+        printf("%d:\t0x%X\n", u32DataCount, s_au32DestinationData[u32DataCount]);
     }
+
+#ifdef InterruptMode
     /* Disable TX FIFO threshold interrupt and RX FIFO time-out interrupt */
     SPI_DisableInt(SPI0, SPI_FIFO_TXTH_INT_MASK | SPI_FIFO_RXTO_INT_MASK);
     NVIC_DisableIRQ(SPI0_IRQn);
+#endif
+
     printf("The data transfer was done.\n");
 
     printf("\n\nExit SPI driver sample code.\n");
 
     /* Reset SPI0 */
     SPI_Close(SPI0);
+
     while(1);
 }
-
-/*** (C) COPYRIGHT 2019 Nuvoton Technology Corp. ***/
-
