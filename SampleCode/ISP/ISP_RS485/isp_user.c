@@ -34,7 +34,7 @@ int ParseCmd(uint8_t *pu8Buffer, uint8_t u8len)
     uint32_t u32PageAddress;
     uint8_t *pu8Response;
     uint16_t u16Lcksum;
-    uint32_t u32Lcmd, u32srclen, u32i;
+    uint32_t u32Lcmd, u32srclen;
     uint8_t *pu8Src;
     static uint32_t u32Gcmd;
     pu8Response = g_au8ResponseBuff;

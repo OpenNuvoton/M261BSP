@@ -52,8 +52,7 @@ SECTIONS
 		__Vectors_Size = __Vectors_End - __Vectors;
 		__end__ = .;
 
-		/* *(.text*)*/
-		*(EXCLUDE_FILE(./User/xom_add.o) .text*)
+		*(.text*)
 
 		KEEP(*(.init))
 		KEEP(*(.fini))
@@ -204,11 +203,4 @@ SECTIONS
 	/* Check if data + heap + stack exceeds RAM limit */
 	ASSERT(__StackLimit >= __HeapLimit, "region RAM overflowed with stack")
 }
-SECTIONS{
 
-	.xom0 :
-	{
-		./User/xom_add.o(.text*)
-	} > XOM0
-
-}

@@ -68,7 +68,6 @@ void SYS_Init(void)
 int32_t main(void)
 {
     uint32_t u32Cfg;
-    int32_t (*func)(int32_t n);
 
     /* Unlock protected registers */
     SYS_UnlockReg();

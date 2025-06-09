@@ -33,7 +33,7 @@ int ParseCmd(unsigned char *buffer, uint8_t len)
     static uint32_t StartAddress, StartAddress_bak, TotalLen, TotalLen_bak, LastDataLen, g_packno = 1;
     uint8_t *response;
     uint16_t lcksum;
-    uint32_t lcmd, srclen, i;
+    uint32_t lcmd, srclen;
     unsigned char *pSrc;
     static uint32_t gcmd;
     response = response_buff;
