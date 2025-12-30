@@ -31,6 +31,12 @@
 #define CMD_RUN_APROM                     0xAB000000
 #define CMD_GET_DEVICEID                  0xB1000000
 
+/* Add implementations to fix linker warnings from the newlib-nano C library in VSCode-GCC14.3.1 */
+void _close(void) {}
+void _lseek(void) {}
+void _read_r(void) {}
+void _write_r(void) {}
+
 /*---------------------------------------------------------------------------*/
 /*  Function Declare                                                         */
 /*---------------------------------------------------------------------------*/

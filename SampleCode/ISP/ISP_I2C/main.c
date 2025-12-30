@@ -19,14 +19,19 @@
 #define PLLCTL_SETTING      CLK_PLLCTL_128MHz_HIRC
 #define PLL_CLOCK           128000000
 
-
-
 uint32_t u32Pclk0;
 uint32_t u32Pclk1;
 int32_t g_FMC_i32ErrCode;
 
 void ProcessHardFault(void) {}
 void SH_Return(void) {}
+
+/* Add implementations to fix linker warnings from the newlib-nano C library in VSCode-GCC14.3.1 */
+void _close(void) {}
+void _lseek(void) {}
+void _read_r(void) {}
+void _write_r(void) {}
+
 uint32_t CLK_GetPLLClockFreq(void)
 {
     return 128000000;
