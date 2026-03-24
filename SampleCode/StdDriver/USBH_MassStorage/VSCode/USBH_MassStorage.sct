@@ -16,7 +16,7 @@
 ; </h>
  *----------------------------------------------------------------------------*/
 #define __FLASH_BASE    0x00000000
-#define __FLASH_SIZE    0x00100000
+#define __FLASH_SIZE    0x00080000
 
 /*--------------------- Embedded RAM Configuration ---------------------------
 ; <h> SRAM Configuration
@@ -25,7 +25,7 @@
 ; </h>
  *----------------------------------------------------------------------------*/
 #define __SRAM_BASE     0x20000000
-#define __SRAM_SIZE     0x00050000
+#define __SRAM_SIZE     0x00018000
 
 /*--------------------- Stack / Heap Configuration ---------------------------
 ; <h> Stack / Heap Configuration

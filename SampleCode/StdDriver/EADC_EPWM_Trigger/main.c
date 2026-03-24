@@ -258,7 +258,7 @@ void EADC_FunctionTest()
 
                 u32COVNUMFlag = g_u32COVNUMFlag - 1;
                 /* Get the conversion result of the sample module 0   */
-                ai32ConversionData[u32COVNUMFlag - 1] = EADC_GET_CONV_DATA(EADC, 0);
+                ai32ConversionData[u32COVNUMFlag] = EADC_GET_CONV_DATA(EADC, 0);
 
                 if(g_u32COVNUMFlag > 6)
                     break;
