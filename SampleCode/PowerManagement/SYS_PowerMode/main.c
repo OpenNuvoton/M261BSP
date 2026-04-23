@@ -287,6 +287,9 @@ int32_t main(void)
 
     printf("\nSample code end.");
 
+    /* Forces a write of all user-space buffered data for the given output */
+    fflush(stdout);
+
     while(1);
 
 }

@@ -19,7 +19,9 @@ project:
         type: ["elf", "bin"]
   linker:
     - for-compiler: GCC
-      script: ../GCC/SYS_SRAMPowerMode.ld
+      script: SYS_SRAMPowerMode.ld
+    - for-compiler: AC6
+      script: SYS_SRAMPowerMode.sct
   add-path:
     - ../../../../Library/Device/Nuvoton/M261/Include
     - ../../../../Library/StdDriver/inc
