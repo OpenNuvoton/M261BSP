@@ -23,9 +23,6 @@ This BSP folder
 - Device<br>
 	CMSIS compliant device header file.
 
-- NuMaker<br>
-	Specific libraries for M261 NuMaker board.
-
 - SmartcardLib<br>
 	Library for accessing a smartcard.
 
@@ -68,15 +65,19 @@ This BSP folder
 - StdDriver<br>
 	Demonstrate the usage of M261 series MCU peripheral driver APIs.
 
+- Template<br>
+	Software Development Template.
+
 - XOM<br>
 	Demonstrate how to create XOM library and use it.
-
 
 ## .\ThirdParty\
 
 - FatFs<br>
 	An open source FAT/exFAT filesystem library.
 
+- FreeRTOS<br>
+	FreeRTOS porting for M261.
 
 # Licesne
 
